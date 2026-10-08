@@ -259,7 +259,9 @@ if [ "$MOD" != "$HERE/driver" ]; then
 fi
 # A Module.symvers carried in from another tree would be consulted first.
 rm -f "$MOD/Module.symvers"
-make -C "$MOD" KDIR="$KTREE" clean
+# Without NVGPU_RUST: clean reads no kernel configuration, so the Makefile's
+# "NVGPU_RUST=1 needs CONFIG_RUST=y" would fire on a kernel that has it.
+env -u NVGPU_RUST make -C "$MOD" KDIR="$KTREE" clean
 make -C "$MOD" KDIR="$KTREE" NVGPU_RUST="$RUST"
 
 record_config
