@@ -185,8 +185,9 @@ release:
 | 535.129.03 | 212 / 1,132 | 68 / 145 |
 | 580.178.04 | 216 / 1,357 | 94 / 209 |
 | 595.71.05, 595.99.02 | 216 / 1,349 | 94 / 209 |
+| 595.104.02 | 217 / 1,350 | 94 / 209 |
 | 610.57.04 | 216 / 1,370 | 97 / 222 |
-| 615.71.09 | 218 / 1,389 | 97 / 224 |
+| 615.71.09 | 219 / 1,389 | 97 / 224 |
 
 Each release also allows the 30 observed controls RM passes to GSP-RM with
 no CPU-side table (below); the backend's start-up line counts them in (246
@@ -213,9 +214,9 @@ every control on an NV2081_BINAPI object, which any user may allocate, is
 sent on as it is (`binapiControl`). Neither has a name or size in the open
 sources. Only the 28 GSS legacy and 2 BINAPI numbers observed are allowed.
 Six of them, added from the application pass (Appendix A.3), carry the size
-measured on 595.99.02 (`GSS_LEGACY_SIZES` in `gen/rmallow_extract.py`), and
-the backend refuses any other size there; on other releases they have none,
-as the rest.
+measured on 595.99.02 and again on 595.104.02 (`GSS_LEGACY_SIZES` in
+`gen/rmallow_extract.py`), and the backend refuses any other size there; on
+other releases they have none, as the rest.
 
 **What it does not do.** It keys on the command, not on the object it is sent
 to: an allowed control sent to an NV2081_BINAPI handle still goes to GSP-RM
@@ -1052,8 +1053,8 @@ empty RM allowlist and every RM escape refused. The host's version is read
 from `/proc/driver/nvidia/version` before any guest message and is never
 learned from a guest's CHECK_VERSION_STR; with no host version set at all,
 as a library user might leave it, every RM escape is refused (EINVAL)
-outside tests and fuzzing (BE-1.15). The rig's 595.99.02 is measured
-by all four.
+outside tests and fuzzing (BE-1.15). The rig's 595.99.02 and 595.104.02
+are measured by all four.
 
 **Start-up.** Three conditions stop the backend. A sandbox layer the kernel
 lacks, or has only in part (`sandbox: DEGRADED`), with `--sandbox=on`, the
@@ -3395,8 +3396,8 @@ on one warning line at every start. `--allow-unmeasured-release` (a
 diagnostic flag) runs a newer or in-between host on the nearest older
 tables, without compute (no UVM table on either side); a host older than
 every release is refused regardless, and inside the backend it gets an
-empty RM allowlist and every RM escape refused. The rig's 595.99.02 is
-measured by all four.
+empty RM allowlist and every RM escape refused. The rig's 595.99.02 and
+595.104.02 are measured by all four.
 
 **Start-up fails closed.** Three conditions the backend used to log and run
 through now stop it. A sandbox layer the kernel lacks, or has only in part

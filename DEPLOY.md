@@ -50,7 +50,8 @@ asks at start and refuses to run otherwise (SECURITY.md, R3).
 release every one of its tables was measured at (`device/src/release.rs`):
 the RM allowlist and the NVKMS schema of that very release, a UVM table whose
 range holds it, and an ABI profile measured through it. Today that is
-**535.129.03, 580.178.04, 595.71.05, 595.99.02, 610.57.04 and 615.71.09**:
+**535.129.03, 580.178.04, 595.71.05, 595.99.02, 595.104.02, 610.57.04 and
+615.71.09**:
 
 | host release | RM allowlist, NVKMS schema | ABI profile | UVM table |
 |---|---|---|---|
@@ -58,6 +59,7 @@ range holds it, and an ABI profile measured through it. Today that is
 | `580.178.04` | its own | `580.178.04` | its own |
 | `595.71.05` | its own | `595.71.05` | its own |
 | `595.99.02` | its own | `595.71.05` | its own |
+| `595.104.02` | its own | `595.71.05` | its own |
 | `610.57.04` | its own | `595.71.05` | its own |
 | `615.71.09` | its own | `595.71.05` (measured through 615.71.09) | its own |
 

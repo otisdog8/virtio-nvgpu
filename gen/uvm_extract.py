@@ -76,6 +76,7 @@ VERSIONS = {
     "590.44.01": "FREE loses length, UNREGISTER_CHANNEL loses gpuUuid",
     "595.71.05": "ABI profile",
     "595.99.02": "ABI profile",
+    "595.104.02": "the RTX 5090 rig",
     "610.43.02": "UVM_INIT_FLAGS_DISABLE_PAGEABLE_ACCESS appears, range groups go",
     "610.57.04": "ABI profile; nvidia-driver/",
     "615.71.09": "ABI profile",

@@ -28,7 +28,7 @@ else
     fail "/run/opengl-driver incomplete: $(ls /run/opengl-driver/ 2>&1 | tr '\n' ' ')"
 fi
 img=$(sed -n 's/^nvidia-userspace \([^ ]*\).*/\1/p' /etc/nvgpu/manifest)
-if [ "$img" = 595.99.02 ]; then pass "image userspace is NVIDIA $img"; else fail "image userspace is NVIDIA '$img', not 595.99.02"; fi
+if [ "$img" = 595.104.02 ]; then pass "image userspace is NVIDIA $img"; else fail "image userspace is NVIDIA '$img', not 595.104.02"; fi
 if command -v nvidia-smi vulkaninfo nvgpu-wl-guest cuda-smoke >/dev/null; then
     pass "tools on PATH (nvidia-smi vulkaninfo nvgpu-wl-guest cuda-smoke)"
 else

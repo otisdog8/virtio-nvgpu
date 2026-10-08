@@ -41,6 +41,7 @@ overrides it.
 | 580.178.04 | ABI profile `v580_178_04.rs` | exists | `c8e699821c23e4335bf23330a54a23d15cfb95e9` |
 | 595.71.05 | ABI profile `v595_71_05.rs` | exists | `51edebee79919b54f498c19a0be31982cd97646e` |
 | 595.99.02 | the RTX 3060 box, where every benchmark comes from | exists | `e394a404108a9ce5bba988c1dddf694dabbd4a43` |
+| 595.104.02 | the RTX 5090 rig after its driver update | exists | `ac24e02fc090c3e05c1fc03384b317ac2cc301b5` |
 | 610.57.04 | `nvidia-driver/`, the tree the display work is written against | exists | `e4a5faa2567f28c8eabe0ebb6422b6d0abcf37eb` |
 | 615.71.09 | the RTX A2000 box | exists | `61dcc93722ecb418bb5f2e00923f05b4b8051dd1` |
 
@@ -275,7 +276,7 @@ matter:
     covered release.
   - 615 added `SEMSURF_EXPORT_TO_SYNCOBJ_POINT` (0x5d) and
     `SYNCOBJ_GET_SYNCFD` (0x5e, which produces an fd).
-- 595.71.05 and 595.99.02 do not differ in anything tracked here.
+- 595.71.05, 595.99.02 and 595.104.02 do not differ in anything tracked here.
 
 ## Cross-release summary (generated)
 
@@ -361,7 +362,11 @@ For each neighbouring pair of releases, the summary lists:
 
 - nothing a forwarder depends on changed
 
-#### 595.99.02 → 610.57.04
+#### 595.99.02 → 595.104.02
+
+- nothing a forwarder depends on changed
+
+#### 595.104.02 → 610.57.04
 
 - NVKMS `REGISTER_VBLANK_INTR_CALLBACK` added as 64
 - NVKMS `UNREGISTER_VBLANK_INTR_CALLBACK` added as 65

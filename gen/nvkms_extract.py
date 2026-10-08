@@ -80,6 +80,7 @@ VERSIONS = {
     "580.178.04": "ABI profile gen/src/versions/v580_178_04.rs",
     "595.71.05": "ABI profile gen/src/versions/v595_71_05.rs",
     "595.99.02": "RTX 3060 box (README: every benchmark number)",
+    "595.104.02": "RTX 5090 rig after its driver update (rig/TESTING-RIG.md)",
     "610.57.04": "nvidia-driver/ source tree the display work is written against",
     "615.71.09": "RTX A2000 box (README)",
 }

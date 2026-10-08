@@ -195,9 +195,11 @@ mod tests {
 
     #[test]
     fn a_version_up_to_the_newest_measured_selects_the_highest_profile() {
-        // The rig's host, one between, and the newest release measured.
+        // The rig's host (before and after its update), one between, and
+        // the newest release measured.
         for v in [
             DriverVersion::new(595, 99, 2),
+            DriverVersion::new(595, 104, 2),
             DriverVersion::new(610, 43, 2),
             MEASURED_THROUGH,
         ] {

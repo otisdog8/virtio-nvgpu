@@ -654,8 +654,8 @@ NVIDIA's kernel driver ABI is not stable; ioctl struct layouts change between
 releases. Support is explicit, and this is the whole list.
 
 **The backend starts only on a host release its tables were measured at**
--- today 535.129.03, 580.178.04, 595.71.05, 595.99.02, 610.57.04 and
-615.71.09 -- and refuses any other at start-up, with a line naming each table
+-- today 535.129.03, 580.178.04, 595.71.05, 595.99.02, 595.104.02,
+610.57.04 and 615.71.09 -- and refuses any other at start-up, with a line naming each table
 it lacks. Forwarding an ioctl whose layout has never been seen is how you get
 a plausible wrong answer instead of an error. Which table each release gets,
 and the diagnostic way through an upgrade, is [`DEPLOY.md`](DEPLOY.md), "The
@@ -670,6 +670,7 @@ natively: RM refuses a client of another release (`NVRM: API mismatch`).
 | version | card | how far it got |
 |---|---|---|
 | **595.99.02** | RTX 5090 | the current code: every graphics and compute path, three display modes, the application pass, under nesbox and crosvm ([`rig/TESTING-RIG.md`](rig/TESTING-RIG.md)) |
+| **595.104.02** | RTX 5090 | the current code: the offscreen graphics and compute probes, the security negatives and a Wayland client of a headless compositor, under nesbox and crosvm; the lease modes and the application pass not rerun ([`rig/TESTING-RIG.md`](rig/TESTING-RIG.md), "Host driver 595.104.02") |
 | **595.99.02** | RTX 3060 | the code before protocol v2: renders, presents, encodes, and the numbers of [`BENCHMARKS.md`](BENCHMARKS.md)'s section on it |
 | **615.71.09** | RTX A2000 | the code before protocol v2: enumerates and renders; not benchmarked, and not re-tested since |
 
@@ -691,8 +692,8 @@ code — that, not this table, is the thing that decides.
 Protocol v2 and the work around it added tables measured per **release**
 rather than per profile: NVKMS and nvidia-drm ioctl layouts, the pointers RM
 follows inside control parameters (both for 535.129.03, 580.178.04, 595.71.05,
-595.99.02, 610.57.04 and 615.71.09), and UVM's parameter block sizes (those six
-and the four releases between them where a size changed). Each is extracted
+595.99.02, 595.104.02, 610.57.04 and 615.71.09), and UVM's parameter block
+sizes (those seven and the four releases between them where a size changed). Each is extracted
 from the release's own sources by a script in `gen/`. Under
 `--allow-unmeasured-release` a host between two measured releases uses the
 older NVKMS table, and an NVKMS command whose layout moved in the next release

@@ -14,7 +14,7 @@
 #   --rig DIR               the rig (default $NVGPU_RIG, else the repo's .rig)
 #   --guest-version V       the NVIDIA userspace the guest image carries
 #                           (default: guest/nvidia-version in the rig, else
-#                           $NVGPU_GUEST_NV_VERSION, else 595.99.02)
+#                           $NVGPU_GUEST_NV_VERSION, else 595.104.02)
 #
 # It opens nothing: device nodes are checked with test -r/-w, which asks the
 # kernel's permission check without touching the driver. The only programs it
@@ -209,7 +209,7 @@ if [ -z "$GUEST_VERSION" ]; then
         # rig/guest-image/mkimage.sh records what it baked in here.
         GV_FROM="the image's /etc/nvgpu/manifest"
     else
-        GUEST_VERSION=${NVGPU_GUEST_NV_VERSION:-595.99.02}
+        GUEST_VERSION=${NVGPU_GUEST_NV_VERSION:-595.104.02}
         GV_FROM="default (no $RIG/guest/nvidia-version)"
     fi
 else

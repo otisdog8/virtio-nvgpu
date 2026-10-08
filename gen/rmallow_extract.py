@@ -73,6 +73,7 @@ VERSIONS = [
     "580.178.04",
     "595.71.05",
     "595.99.02",
+    "595.104.02",
     "610.57.04",
     "615.71.09",
 ]
@@ -195,6 +196,10 @@ GSS_LEGACY_SIZES = {
         0x2080a084: 4,
     },
 }
+# 595.104.02's userspace sends the same six at the same sizes (clinfo and
+# ffmpeg's h264_nvenc and hevc_nvenc, natively on the rig under
+# rig/heavy/rmlog.c with RMLOG_ALL=1).
+GSS_LEGACY_SIZES["595.104.02"] = dict(GSS_LEGACY_SIZES["595.99.02"])
 
 
 # --------------------------------------------------------------------------
@@ -355,6 +360,10 @@ WORKLOAD_CONTROLS = [
     "NV2080_CTRL_CMD_BIOS_GET_INFO", "NV2080_CTRL_CMD_BIOS_GET_INFO_V2",
     "NV2080_CTRL_CMD_BUS_GET_C2C_INFO", "NV2080_CTRL_CMD_BUS_GET_PCI_BAR_INFO",
     "NV2080_CTRL_CMD_BUS_GET_PCI_INFO",
+    # 595.104.02 on: NVML reads the GPU's PCI ids through this one (the V1's
+    # four ids and the class codes), and nvidia-smi's Bus Id, Device Id and
+    # Sub System Id are N/A without it.
+    "NV2080_CTRL_CMD_BUS_GET_PCI_INFO_V2",
     "NV2080_CTRL_CMD_CE_GET_ALL_CAPS", "NV2080_CTRL_CMD_CE_GET_CAPS",
     "NV2080_CTRL_CMD_CE_GET_CAPS_V2", "NV2080_CTRL_CMD_CE_GET_CE_PCE_MASK",
     "NV2080_CTRL_CMD_CE_GET_LCE_SHIM_INFO",

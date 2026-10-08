@@ -156,15 +156,21 @@ mod tests {
         DriverVersion::new(a, b, c)
     }
 
-    /// The rig runs 595.99.02; every table was measured there.
+    /// The rig ran 595.99.02 and runs 595.104.02; every table was measured
+    /// at both.
     #[test]
     fn the_rigs_release_is_measured_by_every_table() {
-        let c = Coverage::of(v(595, 99, 2));
-        assert!(c.measured(), "{}", c.summary());
-        assert_eq!(c.rmallow, Pick::Measured("595.99.02".into()));
-        assert_eq!(c.abi, Pick::Measured("595.71.05".into()));
-        assert_eq!(c.nvkms, Pick::Measured("v595_99_02".into()));
-        assert!(c.unmeasured().is_empty());
+        for (rel, name, nvkms) in [
+            (v(595, 99, 2), "595.99.02", "v595_99_02"),
+            (v(595, 104, 2), "595.104.02", "v595_104_02"),
+        ] {
+            let c = Coverage::of(rel);
+            assert!(c.measured(), "{}", c.summary());
+            assert_eq!(c.rmallow, Pick::Measured(name.into()));
+            assert_eq!(c.abi, Pick::Measured("595.71.05".into()));
+            assert_eq!(c.nvkms, Pick::Measured(nvkms.into()));
+            assert!(c.unmeasured().is_empty());
+        }
     }
 
     #[test]
@@ -178,7 +184,7 @@ mod tests {
         let c = Coverage::of(v(600, 1, 0));
         assert!(!c.measured());
         assert!(c.runnable());
-        assert_eq!(c.rmallow, Pick::Nearest("595.99.02".into()));
+        assert_eq!(c.rmallow, Pick::Nearest("595.104.02".into()));
         assert_eq!(c.unmeasured(), vec!["the RM allowlist", "the NVKMS schema"]);
         assert!(c.summary().contains("NEAREST OLDER"), "{}", c.summary());
     }

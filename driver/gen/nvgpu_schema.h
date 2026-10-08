@@ -1376,6 +1376,254 @@ static const struct nvgpu_sfield nvgpu_schema_v595_99_02_fields[] = {
 };
 
 static const struct nvgpu_sioctl nvgpu_schema_v595_99_02_ioctls[] = {
+  {.name = "NVKMS_ALLOC_DEVICE", .cmd = 0xc0106d00u, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .nfield = 1},
+  {.name = "NVKMS_FREE_DEVICE", .cmd = 0xc0106d00u, .nvkms_cmd = 1, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 1, .nfield = 1},
+  {.name = "NVKMS_QUERY_DISP", .cmd = 0xc0106d00u, .nvkms_cmd = 2, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 2, .nfield = 1},
+  {.name = "NVKMS_QUERY_CONNECTOR_STATIC_DATA", .cmd = 0xc0106d00u, .nvkms_cmd = 3, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 3, .nfield = 1},
+  {.name = "NVKMS_QUERY_CONNECTOR_DYNAMIC_DATA", .cmd = 0xc0106d00u, .nvkms_cmd = 4, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 4, .nfield = 1},
+  {.name = "NVKMS_QUERY_DPY_STATIC_DATA", .cmd = 0xc0106d00u, .nvkms_cmd = 5, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 5, .nfield = 1},
+  {.name = "NVKMS_QUERY_DPY_DYNAMIC_DATA", .cmd = 0xc0106d00u, .nvkms_cmd = 6, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 6, .nfield = 1},
+  {.name = "NVKMS_VALIDATE_MODE_INDEX", .cmd = 0xc0106d00u, .nvkms_cmd = 7, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 7, .nfield = 1},
+  {.name = "NVKMS_VALIDATE_MODE", .cmd = 0xc0106d00u, .nvkms_cmd = 8, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 9, .nfield = 1},
+  {.name = "NVKMS_SET_MODE", .cmd = 0xc0106d00u, .nvkms_cmd = 9, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 11, .nfield = 1},
+  {.name = "NVKMS_SET_CURSOR_IMAGE", .cmd = 0xc0106d00u, .nvkms_cmd = 10, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 16, .nfield = 1},
+  {.name = "NVKMS_MOVE_CURSOR", .cmd = 0xc0106d00u, .nvkms_cmd = 11, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 17, .nfield = 1},
+  {.name = "NVKMS_SET_LUT", .cmd = 0xc0106d00u, .nvkms_cmd = 12, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 18, .nfield = 1},
+  {.name = "NVKMS_CHECK_LUT_NOTIFIER", .cmd = 0xc0106d00u, .nvkms_cmd = 13, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 21, .nfield = 1},
+  {.name = "NVKMS_IDLE_BASE_CHANNEL", .cmd = 0xc0106d00u, .nvkms_cmd = 14, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 22, .nfield = 1},
+  {.name = "NVKMS_FLIP", .cmd = 0xc0106d00u, .nvkms_cmd = 15, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 23, .nfield = 1},
+  {.name = "NVKMS_DECLARE_DYNAMIC_DPY_INTEREST", .cmd = 0xc0106d00u, .nvkms_cmd = 16, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 27, .nfield = 1},
+  {.name = "NVKMS_REGISTER_SURFACE", .cmd = 0xc0106d00u, .nvkms_cmd = 17, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 28, .nfield = 1},
+  {.name = "NVKMS_UNREGISTER_SURFACE", .cmd = 0xc0106d00u, .nvkms_cmd = 18, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 31, .nfield = 1},
+  {.name = "NVKMS_GRANT_SURFACE", .cmd = 0xc0106d00u, .nvkms_cmd = 19, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 32, .nfield = 1},
+  {.name = "NVKMS_ACQUIRE_SURFACE", .cmd = 0xc0106d00u, .nvkms_cmd = 20, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 34, .nfield = 1},
+  {.name = "NVKMS_RELEASE_SURFACE", .cmd = 0xc0106d00u, .nvkms_cmd = 21, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 36, .nfield = 1},
+  {.name = "NVKMS_SET_DPY_ATTRIBUTE", .cmd = 0xc0106d00u, .nvkms_cmd = 22, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 37, .nfield = 1},
+  {.name = "NVKMS_GET_DPY_ATTRIBUTE", .cmd = 0xc0106d00u, .nvkms_cmd = 23, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 38, .nfield = 1},
+  {.name = "NVKMS_GET_DPY_ATTRIBUTE_VALID_VALUES", .cmd = 0xc0106d00u, .nvkms_cmd = 24, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 39, .nfield = 1},
+  {.name = "NVKMS_SET_DISP_ATTRIBUTE", .cmd = 0xc0106d00u, .nvkms_cmd = 25, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 40, .nfield = 1},
+  {.name = "NVKMS_GET_DISP_ATTRIBUTE", .cmd = 0xc0106d00u, .nvkms_cmd = 26, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 41, .nfield = 1},
+  {.name = "NVKMS_GET_DISP_ATTRIBUTE_VALID_VALUES", .cmd = 0xc0106d00u, .nvkms_cmd = 27, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 42, .nfield = 1},
+  {.name = "NVKMS_QUERY_FRAMELOCK", .cmd = 0xc0106d00u, .nvkms_cmd = 28, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 43, .nfield = 1},
+  {.name = "NVKMS_SET_FRAMELOCK_ATTRIBUTE", .cmd = 0xc0106d00u, .nvkms_cmd = 29, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 44, .nfield = 1},
+  {.name = "NVKMS_GET_FRAMELOCK_ATTRIBUTE", .cmd = 0xc0106d00u, .nvkms_cmd = 30, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 45, .nfield = 1},
+  {.name = "NVKMS_GET_FRAMELOCK_ATTRIBUTE_VALID_VALUES", .cmd = 0xc0106d00u, .nvkms_cmd = 31, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 46, .nfield = 1},
+  {.name = "NVKMS_GET_NEXT_EVENT", .cmd = 0xc0106d00u, .nvkms_cmd = 32, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 47, .nfield = 1},
+  {.name = "NVKMS_DECLARE_EVENT_INTEREST", .cmd = 0xc0106d00u, .nvkms_cmd = 33, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 48, .nfield = 1},
+  {.name = "NVKMS_CLEAR_UNICAST_EVENT", .cmd = 0xc0106d00u, .nvkms_cmd = 34, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 49, .nfield = 1},
+  {.name = "NVKMS_SET_LAYER_POSITION", .cmd = 0xc0106d00u, .nvkms_cmd = 37, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 51, .nfield = 1},
+  {.name = "NVKMS_GRAB_OWNERSHIP", .cmd = 0xc0106d00u, .nvkms_cmd = 38, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 52, .nfield = 1},
+  {.name = "NVKMS_RELEASE_OWNERSHIP", .cmd = 0xc0106d00u, .nvkms_cmd = 39, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 53, .nfield = 1},
+  {.name = "NVKMS_GRANT_PERMISSIONS", .cmd = 0xc0106d00u, .nvkms_cmd = 40, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 54, .nfield = 1},
+  {.name = "NVKMS_ACQUIRE_PERMISSIONS", .cmd = 0xc0106d00u, .nvkms_cmd = 41, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 56, .nfield = 1},
+  {.name = "NVKMS_REVOKE_PERMISSIONS", .cmd = 0xc0106d00u, .nvkms_cmd = 42, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 58, .nfield = 1},
+  {.name = "NVKMS_QUERY_DPY_CRC32", .cmd = 0xc0106d00u, .nvkms_cmd = 43, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 59, .nfield = 1},
+  {.name = "NVKMS_REGISTER_DEFERRED_REQUEST_FIFO", .cmd = 0xc0106d00u, .nvkms_cmd = 44, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 60, .nfield = 1},
+  {.name = "NVKMS_UNREGISTER_DEFERRED_REQUEST_FIFO", .cmd = 0xc0106d00u, .nvkms_cmd = 45, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 61, .nfield = 1},
+  {.name = "NVKMS_ALLOC_SWAP_GROUP", .cmd = 0xc0106d00u, .nvkms_cmd = 46, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 62, .nfield = 1},
+  {.name = "NVKMS_FREE_SWAP_GROUP", .cmd = 0xc0106d00u, .nvkms_cmd = 47, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 63, .nfield = 1},
+  {.name = "NVKMS_JOIN_SWAP_GROUP", .cmd = 0xc0106d00u, .nvkms_cmd = 48, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 64, .nfield = 1},
+  {.name = "NVKMS_LEAVE_SWAP_GROUP", .cmd = 0xc0106d00u, .nvkms_cmd = 49, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 67, .nfield = 1},
+  {.name = "NVKMS_SET_SWAP_GROUP_CLIP_LIST", .cmd = 0xc0106d00u, .nvkms_cmd = 50, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 68, .nfield = 1},
+  {.name = "NVKMS_GRANT_SWAP_GROUP", .cmd = 0xc0106d00u, .nvkms_cmd = 51, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 70, .nfield = 1},
+  {.name = "NVKMS_ACQUIRE_SWAP_GROUP", .cmd = 0xc0106d00u, .nvkms_cmd = 52, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 72, .nfield = 1},
+  {.name = "NVKMS_RELEASE_SWAP_GROUP", .cmd = 0xc0106d00u, .nvkms_cmd = 53, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 74, .nfield = 1},
+  {.name = "NVKMS_SWITCH_MUX", .cmd = 0xc0106d00u, .nvkms_cmd = 54, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 75, .nfield = 1},
+  {.name = "NVKMS_GET_MUX_STATE", .cmd = 0xc0106d00u, .nvkms_cmd = 55, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 76, .nfield = 1},
+  {.name = "NVKMS_ENABLE_VBLANK_SYNC_OBJECT", .cmd = 0xc0106d00u, .nvkms_cmd = 56, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 77, .nfield = 1},
+  {.name = "NVKMS_DISABLE_VBLANK_SYNC_OBJECT", .cmd = 0xc0106d00u, .nvkms_cmd = 57, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 78, .nfield = 1},
+  {.name = "NVKMS_NOTIFY_VBLANK", .cmd = 0xc0106d00u, .nvkms_cmd = 58, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 79, .nfield = 1},
+  {.name = "NVKMS_SET_FLIPLOCK_GROUP", .cmd = 0xc0106d00u, .nvkms_cmd = 59, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 81, .nfield = 1},
+  {.name = "NVKMS_ENABLE_VBLANK_SEM_CONTROL", .cmd = 0xc0106d00u, .nvkms_cmd = 60, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 82, .nfield = 1},
+  {.name = "NVKMS_DISABLE_VBLANK_SEM_CONTROL", .cmd = 0xc0106d00u, .nvkms_cmd = 61, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 83, .nfield = 1},
+  {.name = "NVKMS_ACCEL_VBLANK_SEM_CONTROLS", .cmd = 0xc0106d00u, .nvkms_cmd = 62, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 84, .nfield = 1},
+};
+
+static const struct nvgpu_stable nvgpu_schema_v595_99_02 = {
+  .name = "v595_99_02", .vmin = NVGPU_SCHEMA_VERSION(595, 99, 2), .vmax = NVGPU_SCHEMA_VERSION(595, 104, 1),
+  .ioctls = nvgpu_schema_v595_99_02_ioctls, .nioctls = ARRAY_SIZE(nvgpu_schema_v595_99_02_ioctls),
+  .fields = nvgpu_schema_v595_99_02_fields, .nfields = 85,
+  .planes = nvgpu_schema_v595_99_02_planes, .nplanes = 36,
+};
+
+static const u8 nvgpu_schema_v595_104_02_planes[] = {
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 1,
+};
+
+static const struct nvgpu_sfield nvgpu_schema_v595_104_02_fields[] = {
+  /*   0 NVKMS_ALLOC_DEVICE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 1512, .stride = 1512, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 624, .cb_arg = 888},
+  /*   1 NVKMS_FREE_DEVICE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 8, .stride = 8, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 4, .cb_arg = 4},
+  /*   2 NVKMS_QUERY_DISP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 172, .stride = 172, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 8, .cb_arg = 164},
+  /*   3 NVKMS_QUERY_CONNECTOR_STATIC_DATA.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 44, .stride = 44, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 12, .cb_arg = 32},
+  /*   4 NVKMS_QUERY_CONNECTOR_DYNAMIC_DATA.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 20, .stride = 20, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 12, .cb_arg = 8},
+  /*   5 NVKMS_QUERY_DPY_STATIC_DATA.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 92, .stride = 92, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 12, .cb_arg = 80},
+  /*   6 NVKMS_QUERY_DPY_DYNAMIC_DATA.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 37168, .stride = 37168, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 2072, .cb_arg = 35096},
+  /*   7 NVKMS_VALIDATE_MODE_INDEX.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 736, .stride = 736, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 224, .cb_arg = 512, .child = 8, .nchild = 1},
+  /*   8 NVKMS_VALIDATE_MODE_INDEX.address.request.pInfoString */
+  {.off = 216, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_OUT, .max = 2048, .len_kind = NVGPU_SLEN_COUNT, .len_a = 208, .len_width = 4, .len_elem = 1, .cb_kind = NVGPU_SCB_WRITTEN, .cb_off = 532, .cb_width = 4},
+  /*   9 NVKMS_VALIDATE_MODE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 656, .stride = 656, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 304, .cb_arg = 352, .child = 10, .nchild = 1},
+  /*  10 NVKMS_VALIDATE_MODE.address.request.pInfoString */
+  {.off = 296, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_OUT, .max = 2048, .len_kind = NVGPU_SLEN_COUNT, .len_a = 288, .len_width = 4, .len_elem = 1, .cb_kind = NVGPU_SCB_WRITTEN, .cb_off = 456, .cb_width = 4},
+  /*  11 NVKMS_SET_MODE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 171936, .stride = 171936, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 155992, .cb_arg = 15944, .child = 12, .nchild = 1},
+  /*  12 NVKMS_SET_MODE.address.request.disp */
+  {.off = 16, .kind = NVGPU_SF_ARRAY, .stride = 19496, .count = 8, .child = 13, .nchild = 1},
+  /*  13 NVKMS_SET_MODE.address.request.disp.head */
+  {.off = 8, .kind = NVGPU_SF_ARRAY, .stride = 4872, .count = 4, .child = 14, .nchild = 2},
+  /*  14 NVKMS_SET_MODE.address.request.disp.head.flip.lut.input.pRamps */
+  {.off = 360, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_IN, .max = 6144, .stride = 6144, .len_kind = NVGPU_SLEN_CONST, .len_a = 6144},
+  /*  15 NVKMS_SET_MODE.address.request.disp.head.flip.lut.output.pRamps */
+  {.off = 376, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_IN, .max = 6144, .stride = 6144, .len_kind = NVGPU_SLEN_CONST, .len_a = 6144},
+  /*  16 NVKMS_SET_CURSOR_IMAGE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 52, .stride = 52, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 48, .cb_arg = 4},
+  /*  17 NVKMS_MOVE_CURSOR.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 20, .stride = 20, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 16, .cb_arg = 4},
+  /*  18 NVKMS_SET_LUT.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 72, .stride = 72, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 64, .cb_arg = 4, .child = 19, .nchild = 2},
+  /*  19 NVKMS_SET_LUT.address.request.common.input.pRamps */
+  {.off = 32, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_IN, .max = 6144, .stride = 6144, .len_kind = NVGPU_SLEN_CONST, .len_a = 6144},
+  /*  20 NVKMS_SET_LUT.address.request.common.output.pRamps */
+  {.off = 48, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_IN, .max = 6144, .stride = 6144, .len_kind = NVGPU_SLEN_CONST, .len_a = 6144},
+  /*  21 NVKMS_CHECK_LUT_NOTIFIER.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 20, .stride = 20, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 16, .cb_arg = 1},
+  /*  22 NVKMS_IDLE_BASE_CHANNEL.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 36, .stride = 36, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 20, .cb_arg = 16},
+  /*  23 NVKMS_FLIP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 3104, .stride = 3104, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 24, .cb_arg = 3080, .child = 24, .nchild = 1},
+  /*  24 NVKMS_FLIP.address.request.pFlipHead */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_IN, .max = 143616, .stride = 4488, .len_kind = NVGPU_SLEN_COUNT, .len_a = 16, .len_width = 4, .len_elem = 4488, .child = 25, .nchild = 2},
+  /*  25 NVKMS_FLIP.address.request.pFlipHead.flip.lut.input.pRamps */
+  {.off = 88, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_IN, .max = 6144, .stride = 6144, .len_kind = NVGPU_SLEN_CONST, .len_a = 6144},
+  /*  26 NVKMS_FLIP.address.request.pFlipHead.flip.lut.output.pRamps */
+  {.off = 104, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_IN, .max = 6144, .stride = 6144, .len_kind = NVGPU_SLEN_CONST, .len_a = 6144},
+  /*  27 NVKMS_DECLARE_DYNAMIC_DPY_INTEREST.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 20, .stride = 20, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 16, .cb_arg = 4},
+  /*  28 NVKMS_REGISTER_SURFACE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 152, .stride = 152, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 144, .cb_arg = 4, .child = 29, .nchild = 1},
+  /*  29 NVKMS_REGISTER_SURFACE.address.request.planes */
+  {.off = 16, .cond_off = 4, .cond_mask = 255, .kind = NVGPU_SF_ARRAY, .stride = 32, .count = 3, .len_kind = NVGPU_SLEN_PLANES, .len_a = 124, .flags = NVGPU_SFF_COND | NVGPU_SFF_COND_NE, .child = 30, .nchild = 1},
+  /*  30 NVKMS_REGISTER_SURFACE.address.request.planes.u.fd */
+  {.kind = NVGPU_SF_FD_IN, .width = 4, .kinds = 0x10080u, .none_value = -1},
+  /*  31 NVKMS_UNREGISTER_SURFACE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 16, .stride = 16, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 12, .cb_arg = 4},
+  /*  32 NVKMS_GRANT_SURFACE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 16, .stride = 16, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 12, .cb_arg = 4, .child = 33, .nchild = 1},
+  /*  33 NVKMS_GRANT_SURFACE.address.request.fd */
+  {.off = 8, .kind = NVGPU_SF_FD_IN, .width = 4, .kinds = 0x20000u, .none_value = -1},
+  /*  34 NVKMS_ACQUIRE_SURFACE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 12, .stride = 12, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 4, .cb_arg = 8, .child = 35, .nchild = 1},
+  /*  35 NVKMS_ACQUIRE_SURFACE.address.request.fd */
+  {.kind = NVGPU_SF_FD_IN, .width = 4, .kinds = 0x20000u, .none_value = -1},
+  /*  36 NVKMS_RELEASE_SURFACE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 12, .stride = 12, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 8, .cb_arg = 4},
+  /*  37 NVKMS_SET_DPY_ATTRIBUTE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 32, .stride = 32, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 24, .cb_arg = 4},
+  /*  38 NVKMS_GET_DPY_ATTRIBUTE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 24, .stride = 24, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 16, .cb_arg = 8},
+  /*  39 NVKMS_GET_DPY_ATTRIBUTE_VALID_VALUES.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 40, .stride = 40, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 16, .cb_arg = 24},
+  /*  40 NVKMS_SET_DISP_ATTRIBUTE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 32, .stride = 32, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 24, .cb_arg = 4},
+  /*  41 NVKMS_GET_DISP_ATTRIBUTE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 24, .stride = 24, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 16, .cb_arg = 8},
+  /*  42 NVKMS_GET_DISP_ATTRIBUTE_VALID_VALUES.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 40, .stride = 40, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 16, .cb_arg = 24},
+  /*  43 NVKMS_QUERY_FRAMELOCK.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 20, .stride = 20, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 4, .cb_arg = 16},
+  /*  44 NVKMS_SET_FRAMELOCK_ATTRIBUTE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 24, .stride = 24, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 16, .cb_arg = 4},
+  /*  45 NVKMS_GET_FRAMELOCK_ATTRIBUTE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 16, .stride = 16, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 8, .cb_arg = 8},
+  /*  46 NVKMS_GET_FRAMELOCK_ATTRIBUTE_VALID_VALUES.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 32, .stride = 32, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 8, .cb_arg = 24},
+  /*  47 NVKMS_GET_NEXT_EVENT.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 48, .stride = 48, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 8, .cb_arg = 40},
+  /*  48 NVKMS_DECLARE_EVENT_INTEREST.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 8, .stride = 8, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 4, .cb_arg = 4},
+  /*  49 NVKMS_CLEAR_UNICAST_EVENT.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 8, .stride = 8, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 4, .cb_arg = 4, .child = 50, .nchild = 1},
+  /*  50 NVKMS_CLEAR_UNICAST_EVENT.address.request.unicastEventFd */
+  {.kind = NVGPU_SF_FD_IN, .width = 4, .kinds = 0x20000u, .none_value = -1},
+  /*  51 NVKMS_SET_LAYER_POSITION.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 1196, .stride = 1196, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 1192, .cb_arg = 4},
+  /*  52 NVKMS_GRAB_OWNERSHIP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 8, .stride = 8, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 4, .cb_arg = 4},
+  /*  53 NVKMS_RELEASE_OWNERSHIP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 8, .stride = 8, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 4, .cb_arg = 4},
+  /*  54 NVKMS_GRANT_PERMISSIONS.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 32, .stride = 32, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 28, .cb_arg = 4, .child = 55, .nchild = 1},
+  /*  55 NVKMS_GRANT_PERMISSIONS.address.request.fd */
+  {.kind = NVGPU_SF_FD_IN, .width = 4, .kinds = 0x20000u, .none_value = -1},
+  /*  56 NVKMS_ACQUIRE_PERMISSIONS.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 28, .stride = 28, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 4, .cb_arg = 24, .child = 57, .nchild = 1},
+  /*  57 NVKMS_ACQUIRE_PERMISSIONS.address.request.fd */
+  {.kind = NVGPU_SF_FD_IN, .width = 4, .kinds = 0x20000u, .none_value = -1},
+  /*  58 NVKMS_REVOKE_PERMISSIONS.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 32, .stride = 32, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 28, .cb_arg = 4},
+  /*  59 NVKMS_QUERY_DPY_CRC32.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 36, .stride = 36, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 12, .cb_arg = 24},
+  /*  60 NVKMS_REGISTER_DEFERRED_REQUEST_FIFO.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 12, .stride = 12, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 8, .cb_arg = 4},
+  /*  61 NVKMS_UNREGISTER_DEFERRED_REQUEST_FIFO.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 12, .stride = 12, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 8, .cb_arg = 4},
+  /*  62 NVKMS_ALLOC_SWAP_GROUP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 12, .stride = 12, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 8, .cb_arg = 4},
+  /*  63 NVKMS_FREE_SWAP_GROUP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 12, .stride = 12, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 8, .cb_arg = 4},
+  /*  64 NVKMS_JOIN_SWAP_GROUP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 2568, .stride = 2568, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 2564, .cb_arg = 4, .child = 65, .nchild = 1},
+  /*  65 NVKMS_JOIN_SWAP_GROUP.address.request.member */
+  {.off = 4, .kind = NVGPU_SF_ARRAY, .stride = 20, .count = 128, .len_kind = NVGPU_SLEN_COUNT, .len_width = 4, .child = 66, .nchild = 1},
+  /*  66 NVKMS_JOIN_SWAP_GROUP.address.request.member.unicastEvent.fd */
+  {.off = 12, .cond_off = 16, .cond_mask = 255, .kind = NVGPU_SF_FD_IN, .width = 4, .kinds = 0x20000u, .none_value = -1, .flags = NVGPU_SFF_COND | NVGPU_SFF_COND_NE},
+  /*  67 NVKMS_LEAVE_SWAP_GROUP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 1032, .stride = 1032, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 1028, .cb_arg = 4},
+  /*  68 NVKMS_SET_SWAP_GROUP_CLIP_LIST.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 32, .stride = 32, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 24, .cb_arg = 4, .child = 69, .nchild = 1},
+  /*  69 NVKMS_SET_SWAP_GROUP_CLIP_LIST.address.request.pClipList */
+  {.off = 16, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_IN, .max = 524280, .stride = 8, .len_kind = NVGPU_SLEN_COUNT, .len_a = 8, .len_width = 2, .len_elem = 8},
+  /*  70 NVKMS_GRANT_SWAP_GROUP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 16, .stride = 16, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 12, .cb_arg = 4, .child = 71, .nchild = 1},
+  /*  71 NVKMS_GRANT_SWAP_GROUP.address.request.fd */
+  {.off = 8, .kind = NVGPU_SF_FD_IN, .width = 4, .kinds = 0x20000u, .none_value = -1},
+  /*  72 NVKMS_ACQUIRE_SWAP_GROUP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 12, .stride = 12, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 4, .cb_arg = 8, .child = 73, .nchild = 1},
+  /*  73 NVKMS_ACQUIRE_SWAP_GROUP.address.request.fd */
+  {.kind = NVGPU_SF_FD_IN, .width = 4, .kinds = 0x20000u, .none_value = -1},
+  /*  74 NVKMS_RELEASE_SWAP_GROUP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 12, .stride = 12, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 8, .cb_arg = 4},
+  /*  75 NVKMS_SWITCH_MUX.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 24, .stride = 24, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 20, .cb_arg = 4},
+  /*  76 NVKMS_GET_MUX_STATE.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 16, .stride = 16, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 12, .cb_arg = 4},
+  /*  77 NVKMS_ENABLE_VBLANK_SYNC_OBJECT.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 20, .stride = 20, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 12, .cb_arg = 8},
+  /*  78 NVKMS_DISABLE_VBLANK_SYNC_OBJECT.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 20, .stride = 20, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 16, .cb_arg = 4},
+  /*  79 NVKMS_NOTIFY_VBLANK.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 20, .stride = 20, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 16, .cb_arg = 4, .child = 80, .nchild = 1},
+  /*  80 NVKMS_NOTIFY_VBLANK.address.request.unicastEvent.fd */
+  {.off = 12, .kind = NVGPU_SF_FD_IN, .width = 4, .kinds = 0x20000u, .none_value = -1},
+  /*  81 NVKMS_SET_FLIPLOCK_GROUP.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 72, .stride = 72, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 68, .cb_arg = 4},
+  /*  82 NVKMS_ENABLE_VBLANK_SEM_CONTROL.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 32, .stride = 32, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 24, .cb_arg = 4},
+  /*  83 NVKMS_DISABLE_VBLANK_SEM_CONTROL.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 16, .stride = 16, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 12, .cb_arg = 4},
+  /*  84 NVKMS_ACCEL_VBLANK_SEM_CONTROLS.address */
+  {.off = 8, .kind = NVGPU_SF_PTR, .width = 8, .dir = NVGPU_SDIR_INOUT, .max = 16, .stride = 16, .len_kind = NVGPU_SLEN_NVKMS_PARAMS, .cb_kind = NVGPU_SCB_RANGE, .cb_off = 12, .cb_arg = 4},
+};
+
+static const struct nvgpu_sioctl nvgpu_schema_v595_104_02_ioctls[] = {
   {.name = "NVKMS_ALLOC_DEVICE", .cmd = 0xc0106d00u, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x300u, .nfield = 1},
   {.name = "NVKMS_FREE_DEVICE", .cmd = 0xc0106d00u, .nvkms_cmd = 1, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 1, .nfield = 1},
   {.name = "NVKMS_QUERY_DISP", .cmd = 0xc0106d00u, .nvkms_cmd = 2, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 2, .nfield = 1},
@@ -1439,11 +1687,11 @@ static const struct nvgpu_sioctl nvgpu_schema_v595_99_02_ioctls[] = {
   {.name = "NVKMS_ACCEL_VBLANK_SEM_CONTROLS", .cmd = 0xc0106d00u, .nvkms_cmd = 62, .size = 16, .sclass = NVGPU_SCLASS_MODESET, .special = NVGPU_SSPECIAL_NVKMS_PARAMS, .flags = NVGPU_SIO_EXECUTOR | NVGPU_SIO_ARG_IN_ONLY, .policy = 0x100u, .field = 84, .nfield = 1},
 };
 
-static const struct nvgpu_stable nvgpu_schema_v595_99_02 = {
-  .name = "v595_99_02", .vmin = NVGPU_SCHEMA_VERSION(595, 99, 2), .vmax = NVGPU_SCHEMA_VERSION(610, 57, 3),
-  .ioctls = nvgpu_schema_v595_99_02_ioctls, .nioctls = ARRAY_SIZE(nvgpu_schema_v595_99_02_ioctls),
-  .fields = nvgpu_schema_v595_99_02_fields, .nfields = 85,
-  .planes = nvgpu_schema_v595_99_02_planes, .nplanes = 36,
+static const struct nvgpu_stable nvgpu_schema_v595_104_02 = {
+  .name = "v595_104_02", .vmin = NVGPU_SCHEMA_VERSION(595, 104, 2), .vmax = NVGPU_SCHEMA_VERSION(610, 57, 3),
+  .ioctls = nvgpu_schema_v595_104_02_ioctls, .nioctls = ARRAY_SIZE(nvgpu_schema_v595_104_02_ioctls),
+  .fields = nvgpu_schema_v595_104_02_fields, .nfields = 85,
+  .planes = nvgpu_schema_v595_104_02_planes, .nplanes = 36,
 };
 
 static const u8 nvgpu_schema_v610_57_04_planes[] = {
@@ -1946,6 +2194,7 @@ static const struct nvgpu_schema_set nvgpu_schema_sets[] = {
   {.drm = &nvgpu_schema_drm, .modeset = &nvgpu_schema_v580_178_04},
   {.drm = &nvgpu_schema_drm, .modeset = &nvgpu_schema_v595_71_05},
   {.drm = &nvgpu_schema_drm, .modeset = &nvgpu_schema_v595_99_02},
+  {.drm = &nvgpu_schema_drm, .modeset = &nvgpu_schema_v595_104_02},
   {.drm = &nvgpu_schema_drm, .modeset = &nvgpu_schema_v610_57_04},
   {.drm = &nvgpu_schema_drm, .modeset = &nvgpu_schema_v615_71_09},
 };

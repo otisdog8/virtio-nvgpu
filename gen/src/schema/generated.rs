@@ -1222,22 +1222,22 @@ static V595_99_02_FIELDS: &[Field] = &[
 ];
 
 static V595_99_02_IOCTLS: &[Ioctl] = &[
-    Ioctl { name: "NVKMS_ALLOC_DEVICE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 0, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x300, arg_in_only: true, fields: Span { first: 0, len: 1 } },
+    Ioctl { name: "NVKMS_ALLOC_DEVICE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 0, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 0, len: 1 } },
     Ioctl { name: "NVKMS_FREE_DEVICE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 1, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 1, len: 1 } },
     Ioctl { name: "NVKMS_QUERY_DISP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 2, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 2, len: 1 } },
     Ioctl { name: "NVKMS_QUERY_CONNECTOR_STATIC_DATA", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 3, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 3, len: 1 } },
     Ioctl { name: "NVKMS_QUERY_CONNECTOR_DYNAMIC_DATA", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 4, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 4, len: 1 } },
-    Ioctl { name: "NVKMS_QUERY_DPY_STATIC_DATA", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 5, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x300, arg_in_only: true, fields: Span { first: 5, len: 1 } },
+    Ioctl { name: "NVKMS_QUERY_DPY_STATIC_DATA", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 5, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 5, len: 1 } },
     Ioctl { name: "NVKMS_QUERY_DPY_DYNAMIC_DATA", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 6, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 6, len: 1 } },
     Ioctl { name: "NVKMS_VALIDATE_MODE_INDEX", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 7, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 7, len: 1 } },
     Ioctl { name: "NVKMS_VALIDATE_MODE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 8, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 9, len: 1 } },
-    Ioctl { name: "NVKMS_SET_MODE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 9, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x300, arg_in_only: true, fields: Span { first: 11, len: 1 } },
+    Ioctl { name: "NVKMS_SET_MODE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 9, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 11, len: 1 } },
     Ioctl { name: "NVKMS_SET_CURSOR_IMAGE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 10, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 16, len: 1 } },
     Ioctl { name: "NVKMS_MOVE_CURSOR", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 11, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 17, len: 1 } },
     Ioctl { name: "NVKMS_SET_LUT", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 12, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 18, len: 1 } },
     Ioctl { name: "NVKMS_CHECK_LUT_NOTIFIER", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 13, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 21, len: 1 } },
     Ioctl { name: "NVKMS_IDLE_BASE_CHANNEL", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 14, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 22, len: 1 } },
-    Ioctl { name: "NVKMS_FLIP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 15, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x300, arg_in_only: true, fields: Span { first: 23, len: 1 } },
+    Ioctl { name: "NVKMS_FLIP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 15, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 23, len: 1 } },
     Ioctl { name: "NVKMS_DECLARE_DYNAMIC_DPY_INTEREST", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 16, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 27, len: 1 } },
     Ioctl { name: "NVKMS_REGISTER_SURFACE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 17, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 28, len: 1 } },
     Ioctl { name: "NVKMS_UNREGISTER_SURFACE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 18, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 31, len: 1 } },
@@ -1314,11 +1314,284 @@ static V595_99_02_LAYOUT: NvkmsLayout = NvkmsLayout {
 
 static V595_99_02: Table = Table {
     name: "v595_99_02",
-    versions: Some((DriverVersion::new(595, 99, 2), DriverVersion::new(610, 57, 3))),
+    versions: Some((DriverVersion::new(595, 99, 2), DriverVersion::new(595, 104, 1))),
     ioctls: V595_99_02_IOCTLS,
     fields: V595_99_02_FIELDS,
     planes: &[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 1],
     nvkms: Some(&V595_99_02_LAYOUT),
+};
+
+static V595_104_02_FIELDS: &[Field] = &[
+    // 0 NVKMS_ALLOC_DEVICE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 624, len: 888 }, max: 1512, stride: 1512, children: Span { first: 0, len: 0 } } },
+    // 1 NVKMS_FREE_DEVICE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 4, len: 4 }, max: 8, stride: 8, children: Span { first: 0, len: 0 } } },
+    // 2 NVKMS_QUERY_DISP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 8, len: 164 }, max: 172, stride: 172, children: Span { first: 0, len: 0 } } },
+    // 3 NVKMS_QUERY_CONNECTOR_STATIC_DATA.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 12, len: 32 }, max: 44, stride: 44, children: Span { first: 0, len: 0 } } },
+    // 4 NVKMS_QUERY_CONNECTOR_DYNAMIC_DATA.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 12, len: 8 }, max: 20, stride: 20, children: Span { first: 0, len: 0 } } },
+    // 5 NVKMS_QUERY_DPY_STATIC_DATA.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 12, len: 80 }, max: 92, stride: 92, children: Span { first: 0, len: 0 } } },
+    // 6 NVKMS_QUERY_DPY_DYNAMIC_DATA.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 2072, len: 35096 }, max: 37168, stride: 37168, children: Span { first: 0, len: 0 } } },
+    // 7 NVKMS_VALIDATE_MODE_INDEX.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 224, len: 512 }, max: 736, stride: 736, children: Span { first: 8, len: 1 } } },
+    // 8 NVKMS_VALIDATE_MODE_INDEX.address.request.pInfoString
+    Field { name: "request.pInfoString", off: 216, cond: None, kind: Kind::Ptr { dir: Dir::Out, len: Len::Count { off: 208, width: 4, elem: 1 }, copyback: CopyBack::Written { off: 532, width: 4 }, max: 2048, stride: 0, children: Span { first: 0, len: 0 } } },
+    // 9 NVKMS_VALIDATE_MODE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 304, len: 352 }, max: 656, stride: 656, children: Span { first: 10, len: 1 } } },
+    // 10 NVKMS_VALIDATE_MODE.address.request.pInfoString
+    Field { name: "request.pInfoString", off: 296, cond: None, kind: Kind::Ptr { dir: Dir::Out, len: Len::Count { off: 288, width: 4, elem: 1 }, copyback: CopyBack::Written { off: 456, width: 4 }, max: 2048, stride: 0, children: Span { first: 0, len: 0 } } },
+    // 11 NVKMS_SET_MODE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 155992, len: 15944 }, max: 171936, stride: 171936, children: Span { first: 12, len: 1 } } },
+    // 12 NVKMS_SET_MODE.address.request.disp
+    Field { name: "request.disp", off: 16, cond: None, kind: Kind::Array { count: 8, stride: 19496, limit: Limit::All, children: Span { first: 13, len: 1 } } },
+    // 13 NVKMS_SET_MODE.address.request.disp.head
+    Field { name: "head", off: 8, cond: None, kind: Kind::Array { count: 4, stride: 4872, limit: Limit::All, children: Span { first: 14, len: 2 } } },
+    // 14 NVKMS_SET_MODE.address.request.disp.head.flip.lut.input.pRamps
+    Field { name: "flip.lut.input.pRamps", off: 360, cond: None, kind: Kind::Ptr { dir: Dir::In, len: Len::Const(6144), copyback: CopyBack::None, max: 6144, stride: 6144, children: Span { first: 0, len: 0 } } },
+    // 15 NVKMS_SET_MODE.address.request.disp.head.flip.lut.output.pRamps
+    Field { name: "flip.lut.output.pRamps", off: 376, cond: None, kind: Kind::Ptr { dir: Dir::In, len: Len::Const(6144), copyback: CopyBack::None, max: 6144, stride: 6144, children: Span { first: 0, len: 0 } } },
+    // 16 NVKMS_SET_CURSOR_IMAGE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 48, len: 4 }, max: 52, stride: 52, children: Span { first: 0, len: 0 } } },
+    // 17 NVKMS_MOVE_CURSOR.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 16, len: 4 }, max: 20, stride: 20, children: Span { first: 0, len: 0 } } },
+    // 18 NVKMS_SET_LUT.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 64, len: 4 }, max: 72, stride: 72, children: Span { first: 19, len: 2 } } },
+    // 19 NVKMS_SET_LUT.address.request.common.input.pRamps
+    Field { name: "request.common.input.pRamps", off: 32, cond: None, kind: Kind::Ptr { dir: Dir::In, len: Len::Const(6144), copyback: CopyBack::None, max: 6144, stride: 6144, children: Span { first: 0, len: 0 } } },
+    // 20 NVKMS_SET_LUT.address.request.common.output.pRamps
+    Field { name: "request.common.output.pRamps", off: 48, cond: None, kind: Kind::Ptr { dir: Dir::In, len: Len::Const(6144), copyback: CopyBack::None, max: 6144, stride: 6144, children: Span { first: 0, len: 0 } } },
+    // 21 NVKMS_CHECK_LUT_NOTIFIER.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 16, len: 1 }, max: 20, stride: 20, children: Span { first: 0, len: 0 } } },
+    // 22 NVKMS_IDLE_BASE_CHANNEL.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 20, len: 16 }, max: 36, stride: 36, children: Span { first: 0, len: 0 } } },
+    // 23 NVKMS_FLIP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 24, len: 3080 }, max: 3104, stride: 3104, children: Span { first: 24, len: 1 } } },
+    // 24 NVKMS_FLIP.address.request.pFlipHead
+    Field { name: "request.pFlipHead", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::In, len: Len::Count { off: 16, width: 4, elem: 4488 }, copyback: CopyBack::None, max: 143616, stride: 4488, children: Span { first: 25, len: 2 } } },
+    // 25 NVKMS_FLIP.address.request.pFlipHead.flip.lut.input.pRamps
+    Field { name: "flip.lut.input.pRamps", off: 88, cond: None, kind: Kind::Ptr { dir: Dir::In, len: Len::Const(6144), copyback: CopyBack::None, max: 6144, stride: 6144, children: Span { first: 0, len: 0 } } },
+    // 26 NVKMS_FLIP.address.request.pFlipHead.flip.lut.output.pRamps
+    Field { name: "flip.lut.output.pRamps", off: 104, cond: None, kind: Kind::Ptr { dir: Dir::In, len: Len::Const(6144), copyback: CopyBack::None, max: 6144, stride: 6144, children: Span { first: 0, len: 0 } } },
+    // 27 NVKMS_DECLARE_DYNAMIC_DPY_INTEREST.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 16, len: 4 }, max: 20, stride: 20, children: Span { first: 0, len: 0 } } },
+    // 28 NVKMS_REGISTER_SURFACE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 144, len: 4 }, max: 152, stride: 152, children: Span { first: 29, len: 1 } } },
+    // 29 NVKMS_REGISTER_SURFACE.address.request.planes
+    Field { name: "request.planes", off: 16, cond: Some(Cond { off: 4, mask: 0xff, value: 0x0, ne: true }), kind: Kind::Array { count: 3, stride: 32, limit: Limit::Planes { off: 124 }, children: Span { first: 30, len: 1 } } },
+    // 30 NVKMS_REGISTER_SURFACE.address.request.planes.u.fd
+    Field { name: "u.fd", off: 0, cond: None, kind: Kind::FdIn { width: 4, kinds: 0x10080, none: -1 } },
+    // 31 NVKMS_UNREGISTER_SURFACE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 12, len: 4 }, max: 16, stride: 16, children: Span { first: 0, len: 0 } } },
+    // 32 NVKMS_GRANT_SURFACE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 12, len: 4 }, max: 16, stride: 16, children: Span { first: 33, len: 1 } } },
+    // 33 NVKMS_GRANT_SURFACE.address.request.fd
+    Field { name: "request.fd", off: 8, cond: None, kind: Kind::FdIn { width: 4, kinds: 0x20000, none: -1 } },
+    // 34 NVKMS_ACQUIRE_SURFACE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 4, len: 8 }, max: 12, stride: 12, children: Span { first: 35, len: 1 } } },
+    // 35 NVKMS_ACQUIRE_SURFACE.address.request.fd
+    Field { name: "request.fd", off: 0, cond: None, kind: Kind::FdIn { width: 4, kinds: 0x20000, none: -1 } },
+    // 36 NVKMS_RELEASE_SURFACE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 8, len: 4 }, max: 12, stride: 12, children: Span { first: 0, len: 0 } } },
+    // 37 NVKMS_SET_DPY_ATTRIBUTE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 24, len: 4 }, max: 32, stride: 32, children: Span { first: 0, len: 0 } } },
+    // 38 NVKMS_GET_DPY_ATTRIBUTE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 16, len: 8 }, max: 24, stride: 24, children: Span { first: 0, len: 0 } } },
+    // 39 NVKMS_GET_DPY_ATTRIBUTE_VALID_VALUES.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 16, len: 24 }, max: 40, stride: 40, children: Span { first: 0, len: 0 } } },
+    // 40 NVKMS_SET_DISP_ATTRIBUTE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 24, len: 4 }, max: 32, stride: 32, children: Span { first: 0, len: 0 } } },
+    // 41 NVKMS_GET_DISP_ATTRIBUTE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 16, len: 8 }, max: 24, stride: 24, children: Span { first: 0, len: 0 } } },
+    // 42 NVKMS_GET_DISP_ATTRIBUTE_VALID_VALUES.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 16, len: 24 }, max: 40, stride: 40, children: Span { first: 0, len: 0 } } },
+    // 43 NVKMS_QUERY_FRAMELOCK.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 4, len: 16 }, max: 20, stride: 20, children: Span { first: 0, len: 0 } } },
+    // 44 NVKMS_SET_FRAMELOCK_ATTRIBUTE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 16, len: 4 }, max: 24, stride: 24, children: Span { first: 0, len: 0 } } },
+    // 45 NVKMS_GET_FRAMELOCK_ATTRIBUTE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 8, len: 8 }, max: 16, stride: 16, children: Span { first: 0, len: 0 } } },
+    // 46 NVKMS_GET_FRAMELOCK_ATTRIBUTE_VALID_VALUES.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 8, len: 24 }, max: 32, stride: 32, children: Span { first: 0, len: 0 } } },
+    // 47 NVKMS_GET_NEXT_EVENT.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 8, len: 40 }, max: 48, stride: 48, children: Span { first: 0, len: 0 } } },
+    // 48 NVKMS_DECLARE_EVENT_INTEREST.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 4, len: 4 }, max: 8, stride: 8, children: Span { first: 0, len: 0 } } },
+    // 49 NVKMS_CLEAR_UNICAST_EVENT.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 4, len: 4 }, max: 8, stride: 8, children: Span { first: 50, len: 1 } } },
+    // 50 NVKMS_CLEAR_UNICAST_EVENT.address.request.unicastEventFd
+    Field { name: "request.unicastEventFd", off: 0, cond: None, kind: Kind::FdIn { width: 4, kinds: 0x20000, none: -1 } },
+    // 51 NVKMS_SET_LAYER_POSITION.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 1192, len: 4 }, max: 1196, stride: 1196, children: Span { first: 0, len: 0 } } },
+    // 52 NVKMS_GRAB_OWNERSHIP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 4, len: 4 }, max: 8, stride: 8, children: Span { first: 0, len: 0 } } },
+    // 53 NVKMS_RELEASE_OWNERSHIP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 4, len: 4 }, max: 8, stride: 8, children: Span { first: 0, len: 0 } } },
+    // 54 NVKMS_GRANT_PERMISSIONS.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 28, len: 4 }, max: 32, stride: 32, children: Span { first: 55, len: 1 } } },
+    // 55 NVKMS_GRANT_PERMISSIONS.address.request.fd
+    Field { name: "request.fd", off: 0, cond: None, kind: Kind::FdIn { width: 4, kinds: 0x20000, none: -1 } },
+    // 56 NVKMS_ACQUIRE_PERMISSIONS.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 4, len: 24 }, max: 28, stride: 28, children: Span { first: 57, len: 1 } } },
+    // 57 NVKMS_ACQUIRE_PERMISSIONS.address.request.fd
+    Field { name: "request.fd", off: 0, cond: None, kind: Kind::FdIn { width: 4, kinds: 0x20000, none: -1 } },
+    // 58 NVKMS_REVOKE_PERMISSIONS.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 28, len: 4 }, max: 32, stride: 32, children: Span { first: 0, len: 0 } } },
+    // 59 NVKMS_QUERY_DPY_CRC32.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 12, len: 24 }, max: 36, stride: 36, children: Span { first: 0, len: 0 } } },
+    // 60 NVKMS_REGISTER_DEFERRED_REQUEST_FIFO.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 8, len: 4 }, max: 12, stride: 12, children: Span { first: 0, len: 0 } } },
+    // 61 NVKMS_UNREGISTER_DEFERRED_REQUEST_FIFO.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 8, len: 4 }, max: 12, stride: 12, children: Span { first: 0, len: 0 } } },
+    // 62 NVKMS_ALLOC_SWAP_GROUP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 8, len: 4 }, max: 12, stride: 12, children: Span { first: 0, len: 0 } } },
+    // 63 NVKMS_FREE_SWAP_GROUP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 8, len: 4 }, max: 12, stride: 12, children: Span { first: 0, len: 0 } } },
+    // 64 NVKMS_JOIN_SWAP_GROUP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 2564, len: 4 }, max: 2568, stride: 2568, children: Span { first: 65, len: 1 } } },
+    // 65 NVKMS_JOIN_SWAP_GROUP.address.request.member
+    Field { name: "request.member", off: 4, cond: None, kind: Kind::Array { count: 128, stride: 20, limit: Limit::Count { off: 0, width: 4 }, children: Span { first: 66, len: 1 } } },
+    // 66 NVKMS_JOIN_SWAP_GROUP.address.request.member.unicastEvent.fd
+    Field { name: "unicastEvent.fd", off: 12, cond: Some(Cond { off: 16, mask: 0xff, value: 0x0, ne: true }), kind: Kind::FdIn { width: 4, kinds: 0x20000, none: -1 } },
+    // 67 NVKMS_LEAVE_SWAP_GROUP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 1028, len: 4 }, max: 1032, stride: 1032, children: Span { first: 0, len: 0 } } },
+    // 68 NVKMS_SET_SWAP_GROUP_CLIP_LIST.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 24, len: 4 }, max: 32, stride: 32, children: Span { first: 69, len: 1 } } },
+    // 69 NVKMS_SET_SWAP_GROUP_CLIP_LIST.address.request.pClipList
+    Field { name: "request.pClipList", off: 16, cond: None, kind: Kind::Ptr { dir: Dir::In, len: Len::Count { off: 8, width: 2, elem: 8 }, copyback: CopyBack::None, max: 524280, stride: 8, children: Span { first: 0, len: 0 } } },
+    // 70 NVKMS_GRANT_SWAP_GROUP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 12, len: 4 }, max: 16, stride: 16, children: Span { first: 71, len: 1 } } },
+    // 71 NVKMS_GRANT_SWAP_GROUP.address.request.fd
+    Field { name: "request.fd", off: 8, cond: None, kind: Kind::FdIn { width: 4, kinds: 0x20000, none: -1 } },
+    // 72 NVKMS_ACQUIRE_SWAP_GROUP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 4, len: 8 }, max: 12, stride: 12, children: Span { first: 73, len: 1 } } },
+    // 73 NVKMS_ACQUIRE_SWAP_GROUP.address.request.fd
+    Field { name: "request.fd", off: 0, cond: None, kind: Kind::FdIn { width: 4, kinds: 0x20000, none: -1 } },
+    // 74 NVKMS_RELEASE_SWAP_GROUP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 8, len: 4 }, max: 12, stride: 12, children: Span { first: 0, len: 0 } } },
+    // 75 NVKMS_SWITCH_MUX.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 20, len: 4 }, max: 24, stride: 24, children: Span { first: 0, len: 0 } } },
+    // 76 NVKMS_GET_MUX_STATE.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 12, len: 4 }, max: 16, stride: 16, children: Span { first: 0, len: 0 } } },
+    // 77 NVKMS_ENABLE_VBLANK_SYNC_OBJECT.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 12, len: 8 }, max: 20, stride: 20, children: Span { first: 0, len: 0 } } },
+    // 78 NVKMS_DISABLE_VBLANK_SYNC_OBJECT.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 16, len: 4 }, max: 20, stride: 20, children: Span { first: 0, len: 0 } } },
+    // 79 NVKMS_NOTIFY_VBLANK.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 16, len: 4 }, max: 20, stride: 20, children: Span { first: 80, len: 1 } } },
+    // 80 NVKMS_NOTIFY_VBLANK.address.request.unicastEvent.fd
+    Field { name: "request.unicastEvent.fd", off: 12, cond: None, kind: Kind::FdIn { width: 4, kinds: 0x20000, none: -1 } },
+    // 81 NVKMS_SET_FLIPLOCK_GROUP.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 68, len: 4 }, max: 72, stride: 72, children: Span { first: 0, len: 0 } } },
+    // 82 NVKMS_ENABLE_VBLANK_SEM_CONTROL.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 24, len: 4 }, max: 32, stride: 32, children: Span { first: 0, len: 0 } } },
+    // 83 NVKMS_DISABLE_VBLANK_SEM_CONTROL.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 12, len: 4 }, max: 16, stride: 16, children: Span { first: 0, len: 0 } } },
+    // 84 NVKMS_ACCEL_VBLANK_SEM_CONTROLS.address
+    Field { name: "address", off: 8, cond: None, kind: Kind::Ptr { dir: Dir::InOut, len: Len::NvkmsParams, copyback: CopyBack::Range { off: 12, len: 4 }, max: 16, stride: 16, children: Span { first: 0, len: 0 } } },
+];
+
+static V595_104_02_IOCTLS: &[Ioctl] = &[
+    Ioctl { name: "NVKMS_ALLOC_DEVICE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 0, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x300, arg_in_only: true, fields: Span { first: 0, len: 1 } },
+    Ioctl { name: "NVKMS_FREE_DEVICE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 1, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 1, len: 1 } },
+    Ioctl { name: "NVKMS_QUERY_DISP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 2, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 2, len: 1 } },
+    Ioctl { name: "NVKMS_QUERY_CONNECTOR_STATIC_DATA", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 3, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 3, len: 1 } },
+    Ioctl { name: "NVKMS_QUERY_CONNECTOR_DYNAMIC_DATA", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 4, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 4, len: 1 } },
+    Ioctl { name: "NVKMS_QUERY_DPY_STATIC_DATA", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 5, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x300, arg_in_only: true, fields: Span { first: 5, len: 1 } },
+    Ioctl { name: "NVKMS_QUERY_DPY_DYNAMIC_DATA", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 6, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 6, len: 1 } },
+    Ioctl { name: "NVKMS_VALIDATE_MODE_INDEX", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 7, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 7, len: 1 } },
+    Ioctl { name: "NVKMS_VALIDATE_MODE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 8, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 9, len: 1 } },
+    Ioctl { name: "NVKMS_SET_MODE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 9, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x300, arg_in_only: true, fields: Span { first: 11, len: 1 } },
+    Ioctl { name: "NVKMS_SET_CURSOR_IMAGE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 10, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 16, len: 1 } },
+    Ioctl { name: "NVKMS_MOVE_CURSOR", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 11, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 17, len: 1 } },
+    Ioctl { name: "NVKMS_SET_LUT", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 12, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 18, len: 1 } },
+    Ioctl { name: "NVKMS_CHECK_LUT_NOTIFIER", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 13, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 21, len: 1 } },
+    Ioctl { name: "NVKMS_IDLE_BASE_CHANNEL", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 14, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 22, len: 1 } },
+    Ioctl { name: "NVKMS_FLIP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 15, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x300, arg_in_only: true, fields: Span { first: 23, len: 1 } },
+    Ioctl { name: "NVKMS_DECLARE_DYNAMIC_DPY_INTEREST", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 16, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 27, len: 1 } },
+    Ioctl { name: "NVKMS_REGISTER_SURFACE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 17, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 28, len: 1 } },
+    Ioctl { name: "NVKMS_UNREGISTER_SURFACE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 18, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 31, len: 1 } },
+    Ioctl { name: "NVKMS_GRANT_SURFACE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 19, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 32, len: 1 } },
+    Ioctl { name: "NVKMS_ACQUIRE_SURFACE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 20, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 34, len: 1 } },
+    Ioctl { name: "NVKMS_RELEASE_SURFACE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 21, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 36, len: 1 } },
+    Ioctl { name: "NVKMS_SET_DPY_ATTRIBUTE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 22, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 37, len: 1 } },
+    Ioctl { name: "NVKMS_GET_DPY_ATTRIBUTE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 23, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 38, len: 1 } },
+    Ioctl { name: "NVKMS_GET_DPY_ATTRIBUTE_VALID_VALUES", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 24, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 39, len: 1 } },
+    Ioctl { name: "NVKMS_SET_DISP_ATTRIBUTE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 25, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 40, len: 1 } },
+    Ioctl { name: "NVKMS_GET_DISP_ATTRIBUTE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 26, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 41, len: 1 } },
+    Ioctl { name: "NVKMS_GET_DISP_ATTRIBUTE_VALID_VALUES", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 27, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 42, len: 1 } },
+    Ioctl { name: "NVKMS_QUERY_FRAMELOCK", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 28, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 43, len: 1 } },
+    Ioctl { name: "NVKMS_SET_FRAMELOCK_ATTRIBUTE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 29, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 44, len: 1 } },
+    Ioctl { name: "NVKMS_GET_FRAMELOCK_ATTRIBUTE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 30, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 45, len: 1 } },
+    Ioctl { name: "NVKMS_GET_FRAMELOCK_ATTRIBUTE_VALID_VALUES", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 31, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 46, len: 1 } },
+    Ioctl { name: "NVKMS_GET_NEXT_EVENT", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 32, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 47, len: 1 } },
+    Ioctl { name: "NVKMS_DECLARE_EVENT_INTEREST", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 33, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 48, len: 1 } },
+    Ioctl { name: "NVKMS_CLEAR_UNICAST_EVENT", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 34, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 49, len: 1 } },
+    Ioctl { name: "NVKMS_SET_LAYER_POSITION", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 37, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 51, len: 1 } },
+    Ioctl { name: "NVKMS_GRAB_OWNERSHIP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 38, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 52, len: 1 } },
+    Ioctl { name: "NVKMS_RELEASE_OWNERSHIP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 39, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 53, len: 1 } },
+    Ioctl { name: "NVKMS_GRANT_PERMISSIONS", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 40, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 54, len: 1 } },
+    Ioctl { name: "NVKMS_ACQUIRE_PERMISSIONS", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 41, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 56, len: 1 } },
+    Ioctl { name: "NVKMS_REVOKE_PERMISSIONS", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 42, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 58, len: 1 } },
+    Ioctl { name: "NVKMS_QUERY_DPY_CRC32", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 43, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 59, len: 1 } },
+    Ioctl { name: "NVKMS_REGISTER_DEFERRED_REQUEST_FIFO", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 44, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 60, len: 1 } },
+    Ioctl { name: "NVKMS_UNREGISTER_DEFERRED_REQUEST_FIFO", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 45, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 61, len: 1 } },
+    Ioctl { name: "NVKMS_ALLOC_SWAP_GROUP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 46, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 62, len: 1 } },
+    Ioctl { name: "NVKMS_FREE_SWAP_GROUP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 47, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 63, len: 1 } },
+    Ioctl { name: "NVKMS_JOIN_SWAP_GROUP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 48, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 64, len: 1 } },
+    Ioctl { name: "NVKMS_LEAVE_SWAP_GROUP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 49, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 67, len: 1 } },
+    Ioctl { name: "NVKMS_SET_SWAP_GROUP_CLIP_LIST", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 50, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 68, len: 1 } },
+    Ioctl { name: "NVKMS_GRANT_SWAP_GROUP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 51, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 70, len: 1 } },
+    Ioctl { name: "NVKMS_ACQUIRE_SWAP_GROUP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 52, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 72, len: 1 } },
+    Ioctl { name: "NVKMS_RELEASE_SWAP_GROUP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 53, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 74, len: 1 } },
+    Ioctl { name: "NVKMS_SWITCH_MUX", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 54, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 75, len: 1 } },
+    Ioctl { name: "NVKMS_GET_MUX_STATE", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 55, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 76, len: 1 } },
+    Ioctl { name: "NVKMS_ENABLE_VBLANK_SYNC_OBJECT", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 56, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 77, len: 1 } },
+    Ioctl { name: "NVKMS_DISABLE_VBLANK_SYNC_OBJECT", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 57, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 78, len: 1 } },
+    Ioctl { name: "NVKMS_NOTIFY_VBLANK", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 58, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 79, len: 1 } },
+    Ioctl { name: "NVKMS_SET_FLIPLOCK_GROUP", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 59, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 81, len: 1 } },
+    Ioctl { name: "NVKMS_ENABLE_VBLANK_SEM_CONTROL", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 60, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 82, len: 1 } },
+    Ioctl { name: "NVKMS_DISABLE_VBLANK_SEM_CONTROL", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 61, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 83, len: 1 } },
+    Ioctl { name: "NVKMS_ACCEL_VBLANK_SEM_CONTROLS", class: Class::Modeset, cmd: 0xc0106d00, nvkms_cmd: 62, size: 16, exec: Exec::Executor, special: Special::NvkmsParams, policy: 0x100, arg_in_only: true, fields: Span { first: 84, len: 1 } },
+];
+
+static V595_104_02_LAYOUT: NvkmsLayout = NvkmsLayout {
+    alloc_scrub: &[(40, 2), (44, 576)],
+    alloc_reply_device: 628,
+    alloc_reply_disps: 644,
+    alloc_reply_coherency: 1482,
+    dpy_dynamic_scrub: &[(12, 2058)],
+    dpy_dynamic: NvkmsTarget { device: 0, disp: 4, what: 8 },
+    dpy_dynamic_reply: (2072, 35096),
+    alloc_device_id: 32,
+    set_cursor_image: NvkmsTarget { device: 0, disp: 4, what: 8 },
+    move_cursor: NvkmsTarget { device: 0, disp: 4, what: 8 },
+    set_lut: NvkmsTarget { device: 0, disp: 4, what: 8 },
+    set_dpy_attribute: NvkmsTarget { device: 0, disp: 4, what: 8 },
+    layer_position: NvkmsLayerPosition { device: 0, disps: 4, disp: Arr { off: 8, count: 8, stride: 148 }, heads: 0, head: Arr { off: 4, count: 4, stride: 36 } },
+    flip: NvkmsFlipLayout { device: 0, ptr: 8, heads: 16, head_size: 4488, sd: 0, head: 4, layer: Arr { off: 200, count: 8, stride: 536 }, use_syncpt: 60, sync_specified: 96, awaken: 52 },
+    set_mode: NvkmsSetModeLayout { device: 0, commit: 4, disps: 8, disp: Arr { off: 16, count: 8, stride: 19496 }, heads: 0, head: Arr { off: 8, count: 4, stride: 4872 }, dpys: 0, layer: Arr { off: 472, count: 8, stride: 536 }, use_syncpt: 60, sync_specified: 96, awaken: 52 },
+    grant: NvkmsPerms { device: 4, ptype: 8, flip: NvkmsPermArr { disp: None, head: Arr { off: 12, count: 4, stride: 1 } }, modeset: NvkmsPermArr { disp: None, head: Arr { off: 12, count: 4, stride: 4 } } },
+    acquire: NvkmsPerms { device: 4, ptype: 8, flip: NvkmsPermArr { disp: None, head: Arr { off: 12, count: 4, stride: 1 } }, modeset: NvkmsPermArr { disp: None, head: Arr { off: 12, count: 4, stride: 4 } } },
+    revoke: NvkmsPerms { device: 0, ptype: 8, flip: NvkmsPermArr { disp: None, head: Arr { off: 12, count: 4, stride: 1 } }, modeset: NvkmsPermArr { disp: None, head: Arr { off: 12, count: 4, stride: 4 } } },
+    event_interest: 0,
+    events_allowed: 0x27,
+    next_event_valid: 8,
+    next_event_type: 16,
+    dpy_events: 0x7,
+    drm_grant_typed: true,
+};
+
+static V595_104_02: Table = Table {
+    name: "v595_104_02",
+    versions: Some((DriverVersion::new(595, 104, 2), DriverVersion::new(610, 57, 3))),
+    ioctls: V595_104_02_IOCTLS,
+    fields: V595_104_02_FIELDS,
+    planes: &[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 1],
+    nvkms: Some(&V595_104_02_LAYOUT),
 };
 
 static V610_57_04_FIELDS: &[Field] = &[
@@ -1868,7 +2141,7 @@ static V615_71_09: Table = Table {
 pub static DRM_TABLE: &Table = &DRM;
 
 /// NVKMS entries, one table per range of host driver versions.
-pub static MODESET_TABLES: &[&Table] = &[&V535_129_03, &V580_178_04, &V595_71_05, &V595_99_02, &V610_57_04, &V615_71_09];
+pub static MODESET_TABLES: &[&Table] = &[&V535_129_03, &V580_178_04, &V595_71_05, &V595_99_02, &V595_104_02, &V610_57_04, &V615_71_09];
 
 /// UVM parameter blocks, one table per range of host driver versions.
 pub static UVM_TABLES: &[UvmTable] = &[

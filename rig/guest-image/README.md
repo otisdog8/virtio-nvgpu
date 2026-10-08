@@ -3,7 +3,7 @@
 A reproducible, nix-built ext4 root for the on-device stages in
 [`TESTING.md`](../../TESTING.md). It is a test image: every probe runs as root
 unless told otherwise, and it is not a model for a production guest
-([`DEPLOY.md`](../../DEPLOY.md), "The guest", says what one needs). It carries NVIDIA's 595.99.02 userspace (the
+([`DEPLOY.md`](../../DEPLOY.md), "The guest", says what one needs). It carries NVIDIA's 595.104.02 userspace (the
 host's release, to the digit), the tools each stage runs, this repo's
 `nvgpu-wl-guest` and verify helpers, and one probe script per stage that runs
 as the guest's init and powers the VM off when it is done.
@@ -26,7 +26,7 @@ file in the image is `root:root`. Nothing is setuid.
 | path | what |
 |---|---|
 | `flake.nix`, `flake.lock` | the pinned nixpkgs and the guest root (`packages.x86_64-linux.guestRoot`) |
-| `nix/nvidia.nix` | 595.99.02 via `nvidiaPackages.mkDriver` (userspace: no module, firmware, settings or persistenced; the 32-bit libraries too), and the `/run/opengl-driver` tree: the driver plus egl-wayland, egl-wayland2, egl-gbm and egl-x11; `/run/opengl-driver-32` the same for 32-bit processes. **No mesa**: the guest must use NVIDIA's ICDs and fail loudly without them. |
+| `nix/nvidia.nix` | 595.104.02 via `nvidiaPackages.mkDriver` (userspace: no module, firmware, settings or persistenced; the 32-bit libraries too), and the `/run/opengl-driver` tree: the driver plus egl-wayland, egl-wayland2, egl-gbm and egl-x11; `/run/opengl-driver-32` the same for 32-bit processes. **No mesa**: the guest must use NVIDIA's ICDs and fail loudly without them. |
 | `nix/nvgpu-wl-guest.nix` | the daemon, from the workspace `mkimage.sh` stages |
 | `nix/tools.nix`, `tools/*.c` | the helpers below, plus `sec-negative` and `lease-flip` from `rig/verify` built against nix's libdrm |
 | `nix/tools32.nix` | 32-bit clients for `compat.sh`: `drm-compat.c` and `rm-smoke.c` built i686, and 32-bit `vulkaninfo` and `eglinfo` pinned to NVIDIA's 32-bit ICDs |

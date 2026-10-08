@@ -5,7 +5,7 @@
 // classes a guest may have the backend send (device/src/rmallow.rs).
 // Measured from NVIDIA's sources at each tag (gen/rmallow/<version>.json)
 // and filtered by the policy in gen/rmallow_extract.py.
-// Releases: 535.129.03, 580.178.04, 595.71.05, 595.99.02, 610.57.04, 615.71.09.
+// Releases: 535.129.03, 580.178.04, 595.71.05, 595.99.02, 595.104.02, 610.57.04, 615.71.09.
 
 /// One allowed control: its command and RM's exact parameter size, or
 /// `None` where the size is not RM's to check (a deprecated V1 block,
@@ -1812,6 +1812,425 @@ pub static RELEASES: &[Release] = &[
         ],
     },
     Release {
+        version: (595, 104, 2),
+        controls: &[
+            Control { cmd: 0x00000101, size: None },
+            Control { cmd: 0x00000102, size: Some(108) },
+            Control { cmd: 0x00000127, size: Some(176) },
+            Control { cmd: 0x0000012b, size: Some(8348) },
+            Control { cmd: 0x00000136, size: Some(4) },
+            Control { cmd: 0x0000013a, size: Some(1352) },
+            Control { cmd: 0x0000013e, size: Some(1032) },
+            Control { cmd: 0x000001f0, size: Some(4) },
+            Control { cmd: 0x00000201, size: Some(128) },
+            Control { cmd: 0x00000202, size: Some(40) },
+            Control { cmd: 0x00000204, size: Some(4) },
+            Control { cmd: 0x00000205, size: Some(32) },
+            Control { cmd: 0x00000214, size: Some(384) },
+            Control { cmd: 0x00000215, size: Some(132) },
+            Control { cmd: 0x00000216, size: Some(128) },
+            Control { cmd: 0x0000021b, size: Some(12) },
+            Control { cmd: 0x00000274, size: Some(272) },
+            Control { cmd: 0x00000275, size: Some(268) },
+            Control { cmd: 0x00000279, size: Some(12) },
+            Control { cmd: 0x0000027b, size: Some(4) },
+            Control { cmd: 0x00000288, size: Some(3076) },
+            Control { cmd: 0x00000289, size: Some(4) },
+            Control { cmd: 0x00000290, size: Some(4) },
+            Control { cmd: 0x00000301, size: Some(16) },
+            Control { cmd: 0x00000a04, size: Some(2244) },
+            Control { cmd: 0x00000b02, size: Some(12) },
+            Control { cmd: 0x00000d01, size: Some(12) },
+            Control { cmd: 0x00000d02, size: Some(16) },
+            Control { cmd: 0x00000d04, size: Some(12) },
+            Control { cmd: 0x00000d06, size: Some(16) },
+            Control { cmd: 0x00003d02, size: Some(40) },
+            Control { cmd: 0x00003d05, size: Some(24) },
+            Control { cmd: 0x00003d06, size: Some(20) },
+            Control { cmd: 0x00003d08, size: Some(80) },
+            Control { cmd: 0x00003d0a, size: Some(76) },
+            Control { cmd: 0x00003d0b, size: Some(2128) },
+            Control { cmd: 0x00003d0c, size: Some(652) },
+            Control { cmd: 0x00020102, size: Some(4) },
+            Control { cmd: 0x00020103, size: Some(4) },
+            Control { cmd: 0x00410110, size: Some(16) },
+            Control { cmd: 0x00410112, size: Some(16) },
+            Control { cmd: 0x00410116, size: Some(4) },
+            Control { cmd: 0x00410118, size: Some(8) },
+            Control { cmd: 0x00410120, size: Some(4) },
+            Control { cmd: 0x00410121, size: Some(4) },
+            Control { cmd: 0x00730101, size: Some(2) },
+            Control { cmd: 0x00730102, size: Some(12) },
+            Control { cmd: 0x00730107, size: Some(12) },
+            Control { cmd: 0x00730108, size: Some(16) },
+            Control { cmd: 0x0073010c, size: Some(16) },
+            Control { cmd: 0x00800201, size: Some(16) },
+            Control { cmd: 0x00800280, size: Some(4) },
+            Control { cmd: 0x00800288, size: Some(4) },
+            Control { cmd: 0x00800289, size: Some(8) },
+            Control { cmd: 0x0080028e, size: Some(1) },
+            Control { cmd: 0x00800292, size: Some(804) },
+            Control { cmd: 0x00800294, size: Some(4) },
+            Control { cmd: 0x00801102, size: Some(16) },
+            Control { cmd: 0x00801104, size: Some(16) },
+            Control { cmd: 0x00801108, size: Some(32) },
+            Control { cmd: 0x00801109, size: Some(48) },
+            Control { cmd: 0x00801301, size: Some(16) },
+            Control { cmd: 0x00801307, size: Some(3) },
+            Control { cmd: 0x00801401, size: Some(16) },
+            Control { cmd: 0x00801402, size: Some(3) },
+            Control { cmd: 0x00801701, size: Some(16) },
+            Control { cmd: 0x00801707, size: Some(12) },
+            Control { cmd: 0x0080170d, size: Some(24) },
+            Control { cmd: 0x00801713, size: Some(2) },
+            Control { cmd: 0x00801806, size: Some(192) },
+            Control { cmd: 0x0080180d, size: Some(12) },
+            Control { cmd: 0x00801909, size: Some(1) },
+            Control { cmd: 0x00801b01, size: None },
+            Control { cmd: 0x00801b02, size: Some(12) },
+            Control { cmd: 0x00801c01, size: None },
+            Control { cmd: 0x00801c02, size: Some(12) },
+            Control { cmd: 0x00801f02, size: Some(16) },
+            Control { cmd: 0x00900101, size: Some(8) },
+            Control { cmd: 0x00900103, size: Some(8) },
+            Control { cmd: 0x00900105, size: Some(1) },
+            Control { cmd: 0x00900107, size: Some(8) },
+            Control { cmd: 0x0090010b, size: Some(4) },
+            Control { cmd: 0x00da0001, size: Some(8) },
+            Control { cmd: 0x00da0002, size: Some(40) },
+            Control { cmd: 0x00da0003, size: Some(32) },
+            Control { cmd: 0x00da0004, size: Some(16) },
+            Control { cmd: 0x00da0005, size: Some(24) },
+            Control { cmd: 0x00da0006, size: Some(40) },
+            Control { cmd: 0x00de0001, size: Some(8) },
+            Control { cmd: 0x00fe0101, size: Some(229392) },
+            Control { cmd: 0x00fe0102, size: Some(4) },
+            Control { cmd: 0x20800101, size: None },
+            Control { cmd: 0x20800102, size: Some(564) },
+            Control { cmd: 0x20800110, size: Some(68) },
+            Control { cmd: 0x20800111, size: Some(64) },
+            Control { cmd: 0x20800119, size: Some(4) },
+            Control { cmd: 0x20800123, size: Some(16) },
+            Control { cmd: 0x20800124, size: Some(16) },
+            Control { cmd: 0x2080012f, size: Some(1664) },
+            Control { cmd: 0x20800131, size: Some(4) },
+            Control { cmd: 0x2080013f, size: Some(136) },
+            Control { cmd: 0x20800142, size: Some(4) },
+            Control { cmd: 0x20800145, size: Some(0) },
+            Control { cmd: 0x20800146, size: Some(0) },
+            Control { cmd: 0x20800147, size: Some(144) },
+            Control { cmd: 0x2080014a, size: Some(268) },
+            Control { cmd: 0x2080014b, size: Some(5) },
+            Control { cmd: 0x20800156, size: Some(16) },
+            Control { cmd: 0x2080016c, size: Some(8) },
+            Control { cmd: 0x2080016d, size: Some(12) },
+            Control { cmd: 0x20800170, size: Some(340) },
+            Control { cmd: 0x2080017b, size: Some(12) },
+            Control { cmd: 0x2080018b, size: Some(40) },
+            Control { cmd: 0x20800195, size: Some(260) },
+            Control { cmd: 0x2080019f, size: Some(400) },
+            Control { cmd: 0x208001a3, size: Some(56) },
+            Control { cmd: 0x208001a4, size: Some(16) },
+            Control { cmd: 0x208001b2, size: Some(4) },
+            Control { cmd: 0x20800301, size: Some(20) },
+            Control { cmd: 0x20800403, size: Some(8) },
+            Control { cmd: 0x20800406, size: Some(264) },
+            Control { cmd: 0x20800407, size: Some(1) },
+            Control { cmd: 0x20800802, size: None },
+            Control { cmd: 0x20800810, size: Some(124) },
+            Control { cmd: 0x2080110b, size: Some(536) },
+            Control { cmd: 0x20801201, size: Some(32) },
+            Control { cmd: 0x20801206, size: Some(40) },
+            Control { cmd: 0x20801208, size: Some(24) },
+            Control { cmd: 0x20801210, size: Some(32) },
+            Control { cmd: 0x20801218, size: Some(16) },
+            Control { cmd: 0x2080121b, size: Some(9240) },
+            Control { cmd: 0x20801227, size: Some(48) },
+            Control { cmd: 0x20801228, size: Some(496) },
+            Control { cmd: 0x2080122a, size: Some(24) },
+            Control { cmd: 0x2080122b, size: Some(24) },
+            Control { cmd: 0x20801230, size: Some(32) },
+            Control { cmd: 0x2080123c, size: Some(2044) },
+            Control { cmd: 0x20801301, size: None },
+            Control { cmd: 0x20801303, size: Some(1028) },
+            Control { cmd: 0x20801315, size: Some(16) },
+            Control { cmd: 0x20801320, size: Some(904) },
+            Control { cmd: 0x20801352, size: Some(32) },
+            Control { cmd: 0x20801355, size: Some(4) },
+            Control { cmd: 0x20801357, size: Some(4) },
+            Control { cmd: 0x20801358, size: Some(4) },
+            Control { cmd: 0x20801701, size: Some(16) },
+            Control { cmd: 0x20801702, size: Some(4) },
+            Control { cmd: 0x20801801, size: Some(16) },
+            Control { cmd: 0x20801802, size: None },
+            Control { cmd: 0x20801803, size: Some(200) },
+            Control { cmd: 0x20801813, size: Some(76) },
+            Control { cmd: 0x20801819, size: Some(32) },
+            Control { cmd: 0x20801823, size: Some(420) },
+            Control { cmd: 0x20801829, size: Some(12) },
+            Control { cmd: 0x2080182a, size: Some(112) },
+            Control { cmd: 0x2080182b, size: Some(28) },
+            Control { cmd: 0x20801830, size: Some(4) },
+            Control { cmd: 0x2080183c, size: Some(28) },
+            Control { cmd: 0x2080200a, size: Some(8) },
+            Control { cmd: 0x20802068, size: Some(4) },
+            Control { cmd: 0x20802209, size: Some(4) },
+            Control { cmd: 0x2080220b, size: Some(0) },
+            Control { cmd: 0x2080220c, size: Some(0) },
+            Control { cmd: 0x20802210, size: Some(0) },
+            Control { cmd: 0x20802a01, size: Some(16) },
+            Control { cmd: 0x20802a02, size: Some(8) },
+            Control { cmd: 0x20802a03, size: Some(8) },
+            Control { cmd: 0x20802a0a, size: Some(136) },
+            Control { cmd: 0x20803001, size: Some(48) },
+            Control { cmd: 0x20803002, size: Some(13864) },
+            Control { cmd: 0x20803083, size: Some(39) },
+            Control { cmd: 0x20803125, size: Some(16) },
+            Control { cmd: 0x20803401, size: Some(40) },
+            Control { cmd: 0x20803404, size: Some(2) },
+            Control { cmd: 0x20803601, size: Some(72) },
+            Control { cmd: 0x20803801, size: Some(1928) },
+            Control { cmd: 0x20803d07, size: Some(1) },
+            Control { cmd: 0x20808159, size: None },
+            Control { cmd: 0x20808162, size: None },
+            Control { cmd: 0x20808163, size: Some(4) },
+            Control { cmd: 0x20808164, size: Some(4) },
+            Control { cmd: 0x20808165, size: Some(1) },
+            Control { cmd: 0x2080852a, size: None },
+            Control { cmd: 0x2080852b, size: None },
+            Control { cmd: 0x2080852c, size: None },
+            Control { cmd: 0x2080852e, size: None },
+            Control { cmd: 0x2080852f, size: None },
+            Control { cmd: 0x20808536, size: None },
+            Control { cmd: 0x2080853a, size: None },
+            Control { cmd: 0x20808542, size: None },
+            Control { cmd: 0x20808546, size: None },
+            Control { cmd: 0x20809001, size: Some(8) },
+            Control { cmd: 0x20809009, size: None },
+            Control { cmd: 0x20809019, size: None },
+            Control { cmd: 0x20809064, size: None },
+            Control { cmd: 0x2080a026, size: Some(532) },
+            Control { cmd: 0x2080a060, size: None },
+            Control { cmd: 0x2080a06e, size: None },
+            Control { cmd: 0x2080a080, size: None },
+            Control { cmd: 0x2080a084, size: Some(4) },
+            Control { cmd: 0x2080a0a4, size: None },
+            Control { cmd: 0x2080a0a7, size: None },
+            Control { cmd: 0x2080a0a8, size: None },
+            Control { cmd: 0x2080a612, size: None },
+            Control { cmd: 0x2080a618, size: None },
+            Control { cmd: 0x20810107, size: None },
+            Control { cmd: 0x20810108, size: None },
+            Control { cmd: 0x506f0105, size: Some(8) },
+            Control { cmd: 0x83de0309, size: Some(4) },
+            Control { cmd: 0x83de030c, size: Some(4824) },
+            Control { cmd: 0x83de0310, size: Some(8) },
+            Control { cmd: 0x83de0317, size: Some(8) },
+            Control { cmd: 0x83de0318, size: Some(0) },
+            Control { cmd: 0x906f0101, size: Some(16) },
+            Control { cmd: 0x906f0102, size: Some(16) },
+            Control { cmd: 0x906f0105, size: Some(1) },
+            Control { cmd: 0x906f0106, size: Some(104) },
+            Control { cmd: 0x90960101, size: Some(40) },
+            Control { cmd: 0x90960102, size: Some(12) },
+            Control { cmd: 0x90960103, size: Some(64) },
+            Control { cmd: 0x90960105, size: Some(12) },
+            Control { cmd: 0x90960106, size: Some(12) },
+            Control { cmd: 0x90960107, size: Some(56) },
+            Control { cmd: 0xa06c0101, size: Some(3) },
+            Control { cmd: 0xa06c0102, size: Some(4) },
+            Control { cmd: 0xa06c0103, size: Some(8) },
+            Control { cmd: 0xa06c0104, size: Some(8) },
+            Control { cmd: 0xa06c0105, size: Some(8) },
+            Control { cmd: 0xa06c0106, size: Some(4) },
+            Control { cmd: 0xa06c0109, size: Some(8) },
+            Control { cmd: 0xa06f0103, size: Some(3) },
+            Control { cmd: 0xa06f0104, size: Some(4) },
+            Control { cmd: 0xa06f0108, size: Some(1) },
+            Control { cmd: 0xa06f0112, size: Some(1) },
+            Control { cmd: 0xa06f0113, size: Some(4) },
+            Control { cmd: 0xa0bc0101, size: Some(32) },
+            Control { cmd: 0xa0bc0102, size: Some(984) },
+            Control { cmd: 0xb06f010b, size: Some(8) },
+            Control { cmd: 0xb06f010c, size: Some(16) },
+            Control { cmd: 0xb06f010e, size: Some(12) },
+            Control { cmd: 0xb06f010f, size: Some(4) },
+            Control { cmd: 0xb06f0111, size: Some(4104) },
+            Control { cmd: 0xc36f0108, size: Some(4) },
+            Control { cmd: 0xc36f010a, size: Some(4) },
+            Control { cmd: 0xc56f010b, size: Some(144) },
+            Control { cmd: 0xc56f010c, size: Some(128) },
+            Control { cmd: 0xcb330101, size: Some(6) },
+        ],
+        classes: &[
+            0x0000, // NV01_ROOT
+            0x0001, // NV01_ROOT_NON_PRIV
+            0x0002, // NV01_CONTEXT_DMA
+            0x0005, // NV01_EVENT
+            0x003e, // NV01_MEMORY_SYSTEM
+            0x003f, // NV01_MEMORY_LOCAL_PRIVILEGED
+            0x0040, // NV01_MEMORY_LOCAL_USER
+            0x0041, // NV01_ROOT_CLIENT
+            0x0070, // NV01_MEMORY_VIRTUAL
+            0x0071, // NV01_MEMORY_SYSTEM_OS_DESCRIPTOR
+            0x0073, // NV04_DISPLAY_COMMON
+            0x0079, // NV01_EVENT_OS_EVENT
+            0x0080, // NV01_DEVICE_0
+            0x00b1, // NV01_MEMORY_HW_RESOURCES
+            0x00da, // NV_SEMAPHORE_SURFACE
+            0x00de, // RM_USER_SHARED_DATA
+            0x00fe, // NV_MEMORY_MAPPER
+            0x2080, // NV20_SUBDEVICE_0
+            0x2081, // NV2081_BINAPI
+            0x50a0, // NV50_MEMORY_VIRTUAL
+            0x83de, // GT200_DEBUGGER
+            0x902d, // FERMI_TWOD_A
+            0x9067, // FERMI_CONTEXT_SHARE_A
+            0x906f, // GF100_CHANNEL_GPFIFO
+            0x9072, // GF100_DISP_SW
+            0x9096, // GF100_ZBC_CLEAR
+            0x90e7, // GF100_SUBDEVICE_INFOROM
+            0x90f1, // FERMI_VASPACE_A
+            0xa06c, // KEPLER_CHANNEL_GROUP_A
+            0xa0bc, // NVENC_SW_SESSION
+            0xa140, // KEPLER_INLINE_TO_MEMORY_B
+            0xb4b7, // NVB4B7_VIDEO_ENCODER
+            0xb8b0, // NVB8B0_VIDEO_DECODER
+            0xb8d1, // NVB8D1_VIDEO_NVJPG
+            0xb8fa, // NVB8FA_VIDEO_OFA
+            0xc361, // VOLTA_USERMODE_A
+            0xc36f, // VOLTA_CHANNEL_GPFIFO_A
+            0xc461, // TURING_USERMODE_A
+            0xc46f, // TURING_CHANNEL_GPFIFO_A
+            0xc4b0, // NVC4B0_VIDEO_DECODER
+            0xc4b7, // NVC4B7_VIDEO_ENCODER
+            0xc4d1, // NVC4D1_VIDEO_NVJPG
+            0xc561, // AMPERE_USERMODE_A
+            0xc56f, // AMPERE_CHANNEL_GPFIFO_A
+            0xc597, // TURING_A
+            0xc5b5, // TURING_DMA_COPY_A
+            0xc5c0, // TURING_COMPUTE_A
+            0xc661, // HOPPER_USERMODE_A
+            0xc697, // AMPERE_A
+            0xc6b0, // NVC6B0_VIDEO_DECODER
+            0xc6b5, // AMPERE_DMA_COPY_A
+            0xc6c0, // AMPERE_COMPUTE_A
+            0xc6fa, // NVC6FA_VIDEO_OFA
+            0xc761, // BLACKWELL_USERMODE_A
+            0xc797, // AMPERE_B
+            0xc7b0, // NVC7B0_VIDEO_DECODER
+            0xc7b5, // AMPERE_DMA_COPY_B
+            0xc7b7, // NVC7B7_VIDEO_ENCODER
+            0xc7c0, // AMPERE_COMPUTE_B
+            0xc7fa, // NVC7FA_VIDEO_OFA
+            0xc86f, // HOPPER_CHANNEL_GPFIFO_A
+            0xc8b5, // HOPPER_DMA_COPY_A
+            0xc96f, // BLACKWELL_CHANNEL_GPFIFO_A
+            0xc997, // ADA_A
+            0xc9b0, // NVC9B0_VIDEO_DECODER
+            0xc9b5, // BLACKWELL_DMA_COPY_A
+            0xc9b7, // NVC9B7_VIDEO_ENCODER
+            0xc9c0, // ADA_COMPUTE_A
+            0xc9d1, // NVC9D1_VIDEO_NVJPG
+            0xc9fa, // NVC9FA_VIDEO_OFA
+            0xca6f, // BLACKWELL_CHANNEL_GPFIFO_B
+            0xcab5, // BLACKWELL_DMA_COPY_B
+            0xcb33, // NV_CONFIDENTIAL_COMPUTE
+            0xcb97, // HOPPER_A
+            0xcbc0, // HOPPER_COMPUTE_A
+            0xcd40, // BLACKWELL_INLINE_TO_MEMORY_A
+            0xcd97, // BLACKWELL_A
+            0xcdb0, // NVCDB0_VIDEO_DECODER
+            0xcdc0, // BLACKWELL_COMPUTE_A
+            0xcdd1, // NVCDD1_VIDEO_NVJPG
+            0xcdfa, // NVCDFA_VIDEO_OFA
+            0xce97, // BLACKWELL_B
+            0xceb0, // NVCEB0_VIDEO_DECODER
+            0xceb7, // NVCEB7_VIDEO_ENCODER
+            0xcec0, // BLACKWELL_COMPUTE_B
+            0xced0, // NVCED0_VIDEO_NVJPG
+            0xcefa, // NVCEFA_VIDEO_OFA
+            0xcfb0, // NVCFB0_VIDEO_DECODER
+            0xcfb7, // NVCFB7_VIDEO_ENCODER
+            0xcfd1, // NVCFD1_VIDEO_NVJPG
+            0xcffa, // NVCFFA_VIDEO_OFA
+            0xd1b0, // NVD1B0_VIDEO_DECODER
+            0xd1b7, // NVD1B7_VIDEO_ENCODER
+            0xd1fa, // NVD1FA_VIDEO_OFA
+        ],
+        vidheap: &[2, 3, 5, 6, 14, 15, 16, 18, 19, 20, 27],
+        deferred: &[0x2080012b, 0x2080012c, 0x2080012d, 0x20801116, 0x20801208, 0x20801209, 0x20801211, 0x20802502],
+        unserved_controls: &[],
+        unserved_classes: &[],
+        total_controls: 1350,
+        total_classes: 209,
+        groups: &[
+            Group {
+                name: "debug",
+                controls: &[
+                    Control { cmd: 0x83de0307, size: Some(4) }, // NV83DE_CTRL_CMD_DEBUG_SET_MODE_MMU_DEBUG
+                    Control { cmd: 0x83de0315, size: Some(24) }, // NV83DE_CTRL_CMD_DEBUG_READ_MEMORY
+                    Control { cmd: 0x83de0316, size: Some(24) }, // NV83DE_CTRL_CMD_DEBUG_WRITE_MEMORY
+                    Control { cmd: 0x83de031f, size: Some(4) }, // NV83DE_CTRL_CMD_DEBUG_SET_MODE_ERRBAR_DEBUG
+                ],
+                classes: &[
+                ],
+            },
+            Group {
+                name: "health",
+                controls: &[
+                    Control { cmd: 0x20800133, size: Some(8) }, // NV2080_CTRL_CMD_GPU_QUERY_ECC_CONFIGURATION
+                    Control { cmd: 0x20800157, size: Some(0) }, // NV2080_CTRL_CMD_GPU_QUERY_INFOROM_ECC_SUPPORT
+                    Control { cmd: 0x20801322, size: Some(2056) }, // NV2080_CTRL_CMD_FB_GET_OFFLINED_PAGES
+                    Control { cmd: 0x90e70113, size: Some(16) }, // NV90E7_CTRL_CMD_BBX_GET_LAST_FLUSH_TIME
+                ],
+                classes: &[
+                ],
+            },
+            Group {
+                name: "memacct",
+                controls: &[
+                ],
+                classes: &[
+                ],
+            },
+            Group {
+                name: "profiling",
+                controls: &[
+                    Control { cmd: 0xb0cc0101, size: Some(1) }, // NVB0CC_CTRL_CMD_RESERVE_HWPM_LEGACY
+                    Control { cmd: 0xb0cc0102, size: Some(0) }, // NVB0CC_CTRL_CMD_RELEASE_HWPM_LEGACY
+                    Control { cmd: 0xb0cc0103, size: Some(1) }, // NVB0CC_CTRL_CMD_RESERVE_PM_AREA_SMPC
+                    Control { cmd: 0xb0cc0104, size: Some(0) }, // NVB0CC_CTRL_CMD_RELEASE_PM_AREA_SMPC
+                    Control { cmd: 0xb0cc0105, size: Some(56) }, // NVB0CC_CTRL_CMD_ALLOC_PMA_STREAM
+                    Control { cmd: 0xb0cc0106, size: Some(4) }, // NVB0CC_CTRL_CMD_FREE_PMA_STREAM
+                    Control { cmd: 0xb0cc0107, size: Some(0) }, // NVB0CC_CTRL_CMD_BIND_PM_RESOURCES
+                    Control { cmd: 0xb0cc0108, size: Some(0) }, // NVB0CC_CTRL_CMD_UNBIND_PM_RESOURCES
+                    Control { cmd: 0xb0cc0109, size: Some(48) }, // NVB0CC_CTRL_CMD_PMA_STREAM_UPDATE_GET_PUT
+                    Control { cmd: 0xb0cc010a, size: Some(3980) }, // NVB0CC_CTRL_CMD_EXEC_REG_OPS
+                    Control { cmd: 0xb0cc010d, size: Some(4) }, // NVB0CC_CTRL_CMD_GET_TOTAL_HS_CREDITS
+                    Control { cmd: 0xb0cc010e, size: Some(256) }, // NVB0CC_CTRL_CMD_SET_HS_CREDITS
+                    Control { cmd: 0xb0cc010f, size: Some(256) }, // NVB0CC_CTRL_CMD_GET_HS_CREDITS
+                    Control { cmd: 0xb0cc0115, size: Some(124) }, // NVB0CC_CTRL_CMD_GET_CHIPLET_HS_CREDIT_POOL
+                    Control { cmd: 0xb0cc0116, size: Some(194) }, // NVB0CC_CTRL_CMD_GET_HS_CREDITS_MAPPING
+                    Control { cmd: 0xb0cc0119, size: Some(1) }, // NVB0CC_CTRL_CMD_RESERVE_CCU_PROF
+                    Control { cmd: 0xb0cc011a, size: Some(0) }, // NVB0CC_CTRL_CMD_RELEASE_CCU_PROF
+                ],
+                classes: &[
+                    0xb1cc, // MAXWELL_PROFILER_CONTEXT
+                    0xb2cc, // MAXWELL_PROFILER_DEVICE
+                ],
+            },
+            Group {
+                name: "thermal",
+                controls: &[
+                    Control { cmd: 0x20800513, size: Some(1432) }, // NV2080_CTRL_CMD_THERMAL_SYSTEM_EXECUTE_V2
+                ],
+                classes: &[
+                ],
+            },
+        ],
+    },
+    Release {
         version: (610, 57, 4),
         controls: &[
             Control { cmd: 0x00000101, size: None },
@@ -2394,6 +2813,7 @@ pub static RELEASES: &[Release] = &[
             Control { cmd: 0x2080182a, size: Some(112) },
             Control { cmd: 0x2080182b, size: Some(28) },
             Control { cmd: 0x20801830, size: Some(4) },
+            Control { cmd: 0x2080183c, size: Some(28) },
             Control { cmd: 0x2080200a, size: Some(8) },
             Control { cmd: 0x20802068, size: Some(4) },
             Control { cmd: 0x20802209, size: Some(4) },

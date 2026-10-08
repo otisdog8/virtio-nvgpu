@@ -157,26 +157,30 @@ mod tests {
     /// forwards any size to GSP-RM; the older GSS entries have none.
     #[test]
     fn measured_gss_legacy_controls_carry_their_size() {
-        let (r, exact) =
-            release_for(DriverVersion::new(595, 99, 2)).expect("595.99.02 is measured");
-        assert!(exact);
-        for (cmd, size) in [
-            (0x2080_8163, 4),
-            (0x2080_8164, 4),
-            (0x2080_8165, 1),
-            (0x2080_9001, 8),
-            (0x2080_a026, 532),
-            (0x2080_a084, 4),
+        for rel in [
+            DriverVersion::new(595, 99, 2),
+            DriverVersion::new(595, 104, 2),
         ] {
-            assert_eq!(
-                r.control(cmd).map(|c| c.size),
-                Some(Some(size)),
-                "{cmd:#010x}"
-            );
+            let (r, exact) = release_for(rel).expect("the rig's releases are measured");
+            assert!(exact);
+            for (cmd, size) in [
+                (0x2080_8163, 4),
+                (0x2080_8164, 4),
+                (0x2080_8165, 1),
+                (0x2080_9001, 8),
+                (0x2080_a026, 532),
+                (0x2080_a084, 4),
+            ] {
+                assert_eq!(
+                    r.control(cmd).map(|c| c.size),
+                    Some(Some(size)),
+                    "{rel} {cmd:#010x}"
+                );
+            }
+            // Seen used and left refused: works without it (rig/TESTING-RIG.md).
+            assert!(r.control(0x2080_a028).is_none());
+            assert_eq!(r.control(0x2080_8159).map(|c| c.size), Some(None));
         }
-        // Seen used and left refused: works without it (rig/TESTING-RIG.md).
-        assert!(r.control(0x2080_a028).is_none());
-        assert_eq!(r.control(0x2080_8159).map(|c| c.size), Some(None));
     }
 
     #[test]
@@ -380,12 +384,20 @@ mod tests {
         let (r, exact) = release_for(DriverVersion::new(610, 57, 4)).unwrap();
         assert_eq!(r.version(), DriverVersion::new(610, 57, 4));
         assert!(exact);
-        // The rig's host.
-        let (r, exact) = release_for(DriverVersion::new(595, 99, 2)).unwrap();
+        // The rig's host, before and after its driver update.
+        for rig in [
+            DriverVersion::new(595, 99, 2),
+            DriverVersion::new(595, 104, 2),
+        ] {
+            let (r, exact) = release_for(rig).unwrap();
+            assert_eq!(r.version(), rig);
+            assert!(exact);
+        }
+        let (r, exact) = release_for(DriverVersion::new(595, 100, 1)).unwrap();
         assert_eq!(r.version(), DriverVersion::new(595, 99, 2));
-        assert!(exact);
+        assert!(!exact);
         let (r, exact) = release_for(DriverVersion::new(600, 1, 0)).unwrap();
-        assert_eq!(r.version(), DriverVersion::new(595, 99, 2));
+        assert_eq!(r.version(), DriverVersion::new(595, 104, 2));
         assert!(!exact);
         let (r, exact) = release_for(DriverVersion::new(999, 0, 0)).unwrap();
         assert_eq!(r.version(), RELEASES.last().unwrap().version());

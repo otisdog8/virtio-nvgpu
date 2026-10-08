@@ -13,7 +13,7 @@
   # of this directory (under .rig/guest/flake) and builds that. Without
   # ./nvgpu-src the image is built without nvgpu-wl-guest and the verify
   # helpers, and says so in /etc/nvgpu/manifest.
-  description = "virtio-nvgpu guest root filesystem (NVIDIA 595.99.02 userspace, 64- and 32-bit, + display test tools)";
+  description = "virtio-nvgpu guest root filesystem (NVIDIA 595.104.02 userspace, 64- and 32-bit, + display test tools)";
 
   # Pinned to the nixpkgs the rest of the rig was built with, so what comes
   # from the binary cache is what was checked.

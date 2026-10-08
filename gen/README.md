@@ -171,7 +171,8 @@ fails loudly rather than guess, and `selftest` proves the refusals still fire.
 
 Releases measured: 535.129.03, 580.178.04 and 595.71.05 (the ABI profiles),
 595.99.02 (the RTX 3060 every benchmark comes from, and the RTX 5090 the
-current code runs on), 610.57.04 (the tree the display work was written
+current code ran on), 595.104.02 (the RTX 5090 since its driver update),
+610.57.04 (the tree the display work was written
 against) and 615.71.09 (the RTX A2000). Only with `--allow-unmeasured-release`
 does a host between two use the older table, and then an NVKMS command whose
 layout moved in the next release measured runs only on the exact release. Command numbers are never
@@ -248,8 +249,8 @@ which the backend holds each block to. A command with no row is refused by
 both. The ranges run from each release to the next measured one, as the
 NVKMS tables' do, but here that is checked rather than assumed: `scan`
 measures every published tag and fails if one differs from the table it
-would get. Besides the six measured releases (the three ABI profiles,
-595.99.02, 610.57.04 and 615.71.09), `VERSIONS` has the four where it found a
+would get. Besides the seven measured releases (the three ABI profiles,
+595.99.02, 595.104.02, 610.57.04 and 615.71.09), `VERSIONS` has the four where it found a
 change (550.40.53, 565.57.01, 580.65.06, 590.44.01). Sources are
 cached in `$UVM_EXTRACT_CACHE` (default `$TMPDIR/ogkm-uvm`).
 

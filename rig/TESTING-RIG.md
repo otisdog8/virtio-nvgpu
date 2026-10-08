@@ -21,11 +21,13 @@ notes on this (`.rig/SAFETY-NOTES.md`, git-ignored, host-specific) go further.
 
 This file is the dated record of every hardware run; the README's "What is
 known to work" is the summary the other documents link to. Newest first,
-each on an RTX 5090 with 595.99.02, the sandbox on and the RM allowlist
-enforcing:
+each on an RTX 5090 with 595.99.02 unless its row says otherwise (the
+host's driver became 595.104.02 on 2026-10-08), the sandbox on and the RM
+allowlist enforcing:
 
 | date | tree | what ran | section |
 |---|---|---|---|
+| 2026-10-08 | display-passthrough with 595.104.02 measured (`gen/`), on **595.104.02**: the backend, both guest modules and the image rebuilt with that release's userspace | stage1, compat, render (with and without compute), secneg and wayland, every knob off, under nesbox with the C and Rust modules and under crosvm: all passed. Not rerun: the knobs on, Group B, the live applications | "Host driver 595.104.02" |
 | 2026-10-01 | branch `integrate36`: display-passthrough with `knob-hypr`, `knob-vram`, `knob-rm`, `knob-dmabuf`, `knob-deploy`, `efdrace`, `orphanfix` and `knob-pin` merged | stage1, compat (with syncobj-race's orphan phase), render (with and without compute), secneg and wayland, every knob off and every knob on (`NVGPU_PIN=smt` among them), under nesbox with the C and Rust modules and under crosvm; the two batches of live applications, knobs off: all passed (apps 18/0 and 23/0) | "Regression of the knobs merge" |
 | 2026-09-30 | branch `orphanfix` (efdrace's pump fix plus wait registrations let go with their syncobj) | `nvgpu-syncobj-race` phase 2 five times in one guest, then fresh processes, eight orphan-making processes, the whole tool twice more, drm-compat; the same under the previous backend; the compat probe; phase 2 natively on the host | "Orphan wait registrations" |
 | 2026-09-30 | branch `efdrace`: the event pump's lost wakeup (device/src/pump.rs) and `nvgpu-syncobj-race`'s LATE/LOST diagnosis | the owners phase under nesbox, C and Rust modules, with and without a widened race window and host and guest load, before and after the fix; the compat probe six times | "Syncobj eventfds that never fired" |
@@ -65,7 +67,7 @@ Everything is built into `.rig/` (git-ignored), laid out as
 | `.rig/bin/virtiofsd` | only with `NVGPU_NVIDIA_SHARE` |
 | `.rig/kernel/vmlinux`, `.rig/kernel/nvgpu.ko` | guest kernel 7.2.7 (ELF `vmlinux`: nesbox enters it at `startup_64` with a `boot_params` page; QEMU, for the TCG smoke, through its PVH note), and the module built against it (Kbuild names it `virtio_gpu_nv.ko`; the rig installs it as `nvgpu.ko`). `.rig/build-kernel.sh` builds it in the C toolchain (`.rig/kernel/toolchain`), so without Rust and with the C parsers -- the fallback since the 2026-09-29 review made the Rust ones the default (`scripts/build-guest-kernel.sh` says so when it builds it); run that script in `scripts/guest-toolchain-rust` to have the rig's main kernel be the default one |
 | `.rig/kernel-rust/vmlinux`, `.rig/kernel-rust/nvgpu.ko` | the same kernel with `CONFIG_RUST=y`, and the module with its parsers in Rust (`NVGPU_RUST=1`), built by `rig/rig-build-kernel-rust.sh`; to run one, see [`driver/rust/README.md`](../driver/rust/README.md) |
-| `.rig/guest/rootfs.ext4` | the golden image: NVIDIA 595.99.02 userspace at `/run/opengl-driver`, probes at `/opt/nvgpu/<name>.sh`, the module at `/opt/nvgpu/nvgpu.ko` |
+| `.rig/guest/rootfs.ext4` | the golden image: NVIDIA 595.104.02 userspace at `/run/opengl-driver`, probes at `/opt/nvgpu/<name>.sh`, the module at `/opt/nvgpu/nvgpu.ko` |
 | `.rig/logs/` | one `<tag>.{backend.log,console.log,json}` per run |
 
 Rebuild the backend with:
@@ -661,6 +663,45 @@ rig/rig-tools/portal-identify.sh                   # the picker appears
 # running `run-guest.sh --inject ... ` is $XDG_RUNTIME_DIR/nvgpu-run.*/inject.sock):
 rig/rig-tools/portal-identify.sh --inject "$XDG_RUNTIME_DIR"/nvgpu-run.*/inject.sock
 ```
+
+## Host driver 595.104.02
+
+2026-10-08: the host's driver went from 595.99.02 to 595.104.02, which the
+backend refused at start, as it does any release it has no tables for
+(DEPLOY.md, "Upgrading the host driver"). Measured from the tag
+(`gen/README.md`, "A new host release"), 595.104.02 differs from 595.99.02
+in one thing the tables hold: RM exports one more control,
+NV2080_CTRL_CMD_BUS_GET_PCI_INFO_V2 (0x2080183c, 28 bytes: the V1's four
+ids and the class codes, no pointer). NVIDIA's userspace of that release
+uses it: natively, `nvidia-smi -q` with it refused
+(`RMLOG_REFUSE=0x2080183c`, `rig/heavy/rmlog.c`) prints N/A for Bus,
+Device, Domain, the class codes, Device Id, Bus Id and Sub System Id, and
+with it served a guest's shows them. It is allowed beside its V1. The six
+GSS legacy controls held to a size were seen again at the same sizes
+(clinfo, and ffmpeg's h264_nvenc and hevc_nvenc, natively with
+`RMLOG_ALL=1`). `scripts/gen-check.sh` with `GVISOR=fetch` passed on every
+table.
+
+The backend, both guest modules (the NVKMS table for the release is in
+`driver/gen/nvgpu_schema.h`) and the image (`rig/guest-image/nix/nvidia.nix`
+at 595.104.02) rebuilt; every knob at its default, wayland against the
+headless sway, secneg with `nvgpu_secneg_kms=none`. The backend's line:
+`host driver 595.104.02: RM allowlist 595.104.02, ABI profile 595.71.05,
+NVKMS schema v595_104_02, UVM table v590_44_01`.
+
+| probe | nesbox C | nesbox Rust | crosvm C |
+|---|---|---|---|
+| stage1 | 6/0/0 | 6/0/0 | 6/0/0 |
+| compat | 13/0/0 | 13/0/0 | 13/0/0 |
+| render | 10/0/1 | 10/0/1 | 10/0/1 |
+| render, `NVGPU_COMPUTE=1` | 10/0/1, cuda-smoke ALL PASS | the same | the same |
+| secneg | 22 passed, 6 skipped | 22 / 6 | 22 / 6 |
+| wayland (headless sway) | 11/0/3 | 11/0/3 | 11/0/3 |
+
+Every count is `f41249a`'s on 595.99.02 ("Regression of the knobs merge"),
+and the render run's allowlist refusals are the same eight controls and two
+classes. Not rerun on 595.104.02: the knobs on, Group B and the live
+applications.
 
 ## Regression of the knobs merge
 

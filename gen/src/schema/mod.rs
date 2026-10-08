@@ -776,6 +776,7 @@ mod tests {
         assert!(uvm_table(v(999, 0, 0)).is_none());
         // The rig's host.
         assert!(uvm_table(v(595, 99, 2)).is_some());
+        assert!(uvm_table(v(595, 104, 2)).is_some());
     }
 
     #[test]
@@ -809,6 +810,7 @@ mod tests {
             (v(580, 178, 4), "v580_178_04"),
             (v(595, 71, 5), "v595_71_05"),
             (v(595, 99, 2), "v595_99_02"),
+            (v(595, 104, 2), "v595_104_02"),
             (v(610, 57, 4), "v610_57_04"),
             (v(615, 71, 9), "v615_71_09"),
         ] {
@@ -819,8 +821,9 @@ mod tests {
 
     #[test]
     fn a_release_between_two_measured_ones_gets_the_older_and_a_newer_one_the_last() {
-        assert_eq!(modeset_table(v(600, 1, 0)).unwrap().name, "v595_99_02");
-        assert_eq!(modeset_table(v(610, 57, 3)).unwrap().name, "v595_99_02");
+        assert_eq!(modeset_table(v(595, 100, 1)).unwrap().name, "v595_99_02");
+        assert_eq!(modeset_table(v(600, 1, 0)).unwrap().name, "v595_104_02");
+        assert_eq!(modeset_table(v(610, 57, 3)).unwrap().name, "v595_104_02");
         assert_eq!(modeset_table(v(610, 80, 0)).unwrap().name, "v610_57_04");
         assert_eq!(modeset_table(v(999, 0, 0)).unwrap().name, "v615_71_09");
         assert!(!modeset_table_exact(v(610, 80, 0)));
@@ -844,6 +847,7 @@ mod tests {
         };
         assert_eq!(reg(v(535, 129, 3)), 16);
         assert_eq!(reg(v(595, 99, 2)), 17);
+        assert_eq!(reg(v(595, 104, 2)), 17);
         assert_eq!(reg(v(610, 57, 4)), 17);
         assert_eq!(reg(v(615, 71, 9)), 16);
     }
@@ -917,9 +921,12 @@ mod tests {
         let exact = |n: u32| t.lookup_nvkms(n).unwrap().policy & policy::NVKMS_EXACT != 0;
         assert!(!exact(3), "QUERY_CONNECTOR_STATIC_DATA did not move");
         assert!(exact(15), "FLIP did");
-        // 595.71.05 and 595.99.02 do not differ in anything tracked.
-        let t = modeset_table(v(595, 71, 5)).unwrap();
-        assert!(t.ioctls.iter().all(|e| e.policy & policy::NVKMS_EXACT == 0));
+        // 595.71.05, 595.99.02 and 595.104.02 do not differ in anything
+        // tracked.
+        for rel in [v(595, 71, 5), v(595, 99, 2)] {
+            let t = modeset_table(rel).unwrap();
+            assert!(t.ioctls.iter().all(|e| e.policy & policy::NVKMS_EXACT == 0));
+        }
         // Nothing to compare the last with: newer hosts rely on the sizes.
         let t = modeset_table(v(615, 71, 9)).unwrap();
         assert!(t.ioctls.iter().all(|e| e.policy & policy::NVKMS_EXACT == 0));

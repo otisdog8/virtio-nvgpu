@@ -3,7 +3,7 @@
 // re-measure with `gen/rmctrl_extract.py all`.
 //
 // Every RM control whose parameters hold a user pointer RM follows, and
-// the offsets of those pointers: the union over 535.129.03, 580.178.04, 595.71.05, 595.99.02, 610.57.04, 615.71.09.
+// the offsets of those pointers: the union over 535.129.03, 580.178.04, 595.71.05, 595.99.02, 595.104.02, 610.57.04, 615.71.09.
 // A command number with different pointers in different releases lists
 // all of them; an offset past a release's block is one it lacks.
 
@@ -44,7 +44,7 @@ pub const CONTROL_POINTERS: &[ControlPointers] = &[
     ControlPointers {
         cmd: 0x00730120,
         name: "NV0073_CTRL_CMD_SYSTEM_EXECUTE_ACPI_METHOD",
-        ptrs: &[8, 24], // only 580.178.04, 595.71.05, 595.99.02, 610.57.04, 615.71.09
+        ptrs: &[8, 24], // only 580.178.04, 595.71.05, 595.99.02, 595.104.02, 610.57.04, 615.71.09
     },
     ControlPointers {
         cmd: 0x00730168,
@@ -134,12 +134,12 @@ pub const CONTROL_POINTERS: &[ControlPointers] = &[
     ControlPointers {
         cmd: 0x2080016e,
         name: "NV2080_CTRL_GPU_GET_NVENC_SW_SESSION_INFO",
-        ptrs: &[8], // only 580.178.04, 595.71.05, 595.99.02, 610.57.04, 615.71.09
+        ptrs: &[8], // only 580.178.04, 595.71.05, 595.99.02, 595.104.02, 610.57.04, 615.71.09
     },
     ControlPointers {
         cmd: 0x208001e8,
         name: "NV2080_CTRL_CMD_GPU_RPC_GSP_TEST",
-        ptrs: &[24], // only 580.178.04, 595.71.05, 595.99.02, 610.57.04, 615.71.09
+        ptrs: &[24], // only 580.178.04, 595.71.05, 595.99.02, 595.104.02, 610.57.04, 615.71.09
     },
     ControlPointers {
         cmd: 0x208001f2,
@@ -234,12 +234,12 @@ pub const CONTROL_POINTERS: &[ControlPointers] = &[
     ControlPointers {
         cmd: 0xa0830103,
         name: "NVA083_CTRL_CMD_VIRTUAL_DISPLAY_GET_DEFAULT_EDID",
-        ptrs: &[0], // only 595.71.05, 595.99.02, 610.57.04, 615.71.09
+        ptrs: &[0], // only 595.71.05, 595.99.02, 595.104.02, 610.57.04, 615.71.09
     },
     ControlPointers {
         cmd: 0xa0bc0101,
         name: "NVA0BC_CTRL_CMD_NVENC_SW_SESSION_UPDATE_INFO",
-        ptrs: &[24], // only 580.178.04, 595.71.05, 595.99.02, 610.57.04, 615.71.09
+        ptrs: &[24], // only 580.178.04, 595.71.05, 595.99.02, 595.104.02, 610.57.04, 615.71.09
     },
     ControlPointers {
         cmd: 0xb06f010c,
