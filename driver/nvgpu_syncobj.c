@@ -797,33 +797,43 @@ static long nvgpu_fence_eventfd(struct nvgpu_fd *nfd, unsigned int cmd,
   bool now = false, drop = false, charged = false;
   unsigned long flags;
   u64 id;
-  long ret;
 
   memcpy(&a, karg, sizeof(a));
   if ((a.flags & ~DRM_SYNCOBJ_WAIT_FLAGS_WAIT_AVAILABLE) || a.pad)
     return -EINVAL; /* drm_syncobj.c:1472-1476 */
+  /*
+   * The handle before the eventfd, in the kernel's order (Linux 7.3,
+   * drivers/gpu/drm/drm_syncobj.c drm_syncobj_eventfd_ioctl(): ENOENT for
+   * an unknown handle, before it looks at the fd). Xwayland probes for
+   * explicit sync with handle 0 and fd -1 and takes only ENOENT as yes
+   * (xwayland 24.1.14, hw/xwayland/xwayland-glamor-gbm.c
+   * xwl_gbm_supports_syncobjs()); EBADF here leaves every X11 client in a
+   * guest without syncobjs, and so without Present flips: a blit and a
+   * glamor_finish() a frame. Handle 0 is never a syncobj (the kernel's IDR
+   * starts at 1), so it needs no round trip; any other unknown handle is the
+   * host's ENOENT (device/src/fence.rs Registrations::watch_new).
+   */
+  if (!a.handle)
+    return -ENOENT;
+  s = nvgpu_sowait_get(nfd, a.handle, a.point, a.flags);
+  if (IS_ERR(s))
+    return PTR_ERR(s) == -EAGAIN ? -ENOMEM : PTR_ERR(s);
   ctx = eventfd_ctx_fdget(a.fd);
-  if (IS_ERR(ctx))
+  if (IS_ERR(ctx)) {
+    nvgpu_sowait_put(s);
     return PTR_ERR(ctx);
+  }
   sub = kzalloc(sizeof(*sub), GFP_KERNEL);
   owner = kzalloc(sizeof(*owner), GFP_KERNEL);
   if (!sub || !owner) {
     kfree(sub);
     kfree(owner);
     eventfd_ctx_put(ctx);
+    nvgpu_sowait_put(s);
     return -ENOMEM;
   }
   sub->ctx = ctx;
   sub->id = id = atomic64_inc_return(&nvgpu_sowait_sub_ids);
-
-  s = nvgpu_sowait_get(nfd, a.handle, a.point, a.flags);
-  if (IS_ERR(s)) {
-    ret = PTR_ERR(s) == -EAGAIN ? -ENOMEM : PTR_ERR(s);
-    kfree(sub);
-    kfree(owner);
-    eventfd_ctx_put(ctx);
-    return ret;
-  }
 
   spin_lock_irqsave(&nvgpu_sowait_lock, flags);
   if (atomic_read(&s->fired)) {
