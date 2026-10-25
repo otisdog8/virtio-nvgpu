@@ -1,15 +1,41 @@
 [workspace]
 resolver = "2"
 members = [
+    "wlwire",
+    "nvgpu-wl-guest",
     "protocol",
     "gen",
     "device",
+    "driver/rust/core",
+    "driver/rust/difftest",
 ]
+# cargo-fuzz targets: workspaces of their own, built with nightly.
+exclude = ["fuzz", "driver/rust/fuzz"]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
+# The oldest rustc the host crates build with (format_args! temporaries
+# held by a `let`, 1.89). The guest's parser crate keeps its own, the
+# kernel's (driver/rust/core).
+rust-version = "1.89"
+# Nothing here is meant for crates.io.
+publish = false
 
 [workspace.dependencies]
 protocol = { path = "protocol" }
 abi      = { path = "gen" }
+wlwire   = { path = "wlwire" }
+
+# What ships. A panic stops the process rather than one thread: a vring
+# worker that unwound would leave its queue unserved and the VM stalled, a
+# thread holding one of the backend's locks would poison it for the rest, and
+# an executor job would leave its file mid-call (device::exec). The seccomp
+# list permits what abort() does (device::sandbox tests). Arithmetic that
+# overflows is a panic here too, as it is in the tests.
+[profile.release]
+panic = "abort"
+overflow-checks = true
+lto = "thin"
+codegen-units = 1
+debug = "line-tables-only"

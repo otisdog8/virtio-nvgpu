@@ -1,14 +1,17 @@
+// SPDX-License-Identifier: Apache-2.0
 //! What the guest driver expects to find on the bus.
 //!
-//! Every constant and layout here is a contract with `driver/virtio_gpu_nv.c`,
+//! Every constant and layout here is a contract with `driver/nvgpu_wire.h`,
 //! and each one has been wrong at least once. A mismatch is not a build error
 //! in either half -- the device compiles, the driver compiles, and the guest
 //! simply fails to probe -- so the agreement is asserted by tests that mirror
 //! the driver's own `static_assert`s.
 
+#![forbid(unsafe_code)]
+
 /// The virtio device ID the guest driver probes for.
 ///
-/// Must match `VIRTIO_ID_GPU_NV` in `driver/virtio_gpu_nv.c`. This said 0x8042
+/// Must match `VIRTIO_ID_GPU_NV` in `driver/nvgpu_wire.h`. This said 0x8042
 /// while the driver bound 45, so a device advertising it would never have been
 /// probed by its own guest driver.
 pub const VIRTIO_ID_GPU_NV: u32 = 45;
@@ -76,6 +79,14 @@ impl Default for GpuSlot {
 }
 
 impl GpuSlot {
+    /// The PCI address, as the directory under `/proc/driver/nvidia/gpus`
+    /// and `/sys/bus/pci/devices` names it: up to the first NUL.
+    pub fn address(&self) -> String {
+        let a = &self.pci_addr;
+        let end = a.iter().position(|&b| b == 0).unwrap_or(a.len());
+        String::from_utf8_lossy(&a[..end]).into_owned()
+    }
+
     /// Build a slot, truncating both strings to what the driver can hold.
     ///
     /// Truncating rather than failing is deliberate: a GPU whose information
@@ -201,33 +212,34 @@ impl VirtioGpuNvConfig {
         // ioctl here; otherwise it forwards the guest's own fd number, which
         // means nothing on the host. Publishing none of these is not a
         // degraded mode -- the backend then sees a raw guest fd where it
-        // expects one of its handles and refuses the call ("bad embedded
-        // handle 9", nvidia-smi reporting "Unable to determine the device
-        // handle for GPU0").
+        // expects one of its handles and refuses the call (EBADF, nvidia-smi
+        // reporting "Unable to determine the device handle for GPU0").
         //
         // The list has to agree with the backend's own, in
-        // `nvidia.rs::dispatch_fd_ioctl`, since that is what reads the
-        // rewritten field back out.
-        for (i, (nr, off)) in FD_CARRYING_IOCTLS.iter().enumerate() {
+        // `dispatch_fd_carrying` (nvidia/rm.rs) and `dispatch_map_memory`
+        // (nvidia/rmmap.rs), since they read the rewritten field back out.
+        //
+        // Then the UVM commands that name a file (crate::uvmfd), marked
+        // FDT_UVM, with their block sizes; where one of them sits depends on
+        // the host release.
+        let uvm = crate::uvmfd::config_entries(abi::version::DriverVersion::parse(driver_version));
+        let entries: Vec<(u32, u32)> = FD_CARRYING_IOCTLS.iter().copied().chain(uvm).collect();
+        assert!(entries.len() <= MAX_FD_TRANSLATIONS);
+        for (i, (nr, off)) in entries.iter().enumerate() {
             cfg.fd_translations[i] = FdTranslation {
                 nr: *nr,
                 payload_offset: *off,
             };
         }
-        cfg.num_fd_translations = FD_CARRYING_IOCTLS.len() as u32;
+        cfg.num_fd_translations = entries.len() as u32;
         cfg
     }
 
     /// Config space as the bytes a guest reads.
     pub fn as_bytes(&self) -> &[u8] {
-        // Safe: `repr(C, packed)` with no padding and no pointers, so every
-        // byte of the struct is initialised and meaningful.
-        unsafe {
-            std::slice::from_raw_parts(
-                self as *const Self as *const u8,
-                std::mem::size_of::<Self>(),
-            )
-        }
+        // `repr(C, packed)` with no padding and no pointers, so every byte
+        // of the struct is initialised and meaningful (sys::pod).
+        crate::sys::pod::bytes(self)
     }
 
     /// Serve a config read, clamped to the struct.
@@ -271,6 +283,50 @@ mod tests {
             "config is {} bytes; a guest cannot read past 4096",
             size_of::<VirtioGpuNvConfig>()
         );
+    }
+
+    /// The config space, field for field, and the constants of nvgpu_wire.h
+    /// this module holds, as the C header declares them (protocol's tests
+    /// check the rest of the header).
+    #[test]
+    fn config_space_is_laid_out_as_the_header_says() {
+        let h = protocol::cheader::Header::parse(include_str!("../../driver/nvgpu_wire.h"));
+        assert_eq!(h.define("VIRTIO_ID_GPU_NV"), u64::from(VIRTIO_ID_GPU_NV));
+        assert_eq!(h.define("NVGPU_FDT_UVM"), u64::from(crate::uvmfd::FDT_UVM));
+        macro_rules! fields {
+            ($t:ty, [$($f:ident),* $(,)?]) => {
+                (size_of::<$t>(), vec![$((stringify!($f).to_string(), offset_of!($t, $f))),*])
+            };
+        }
+        for (name, (size, fields)) in [
+            (
+                "virtio_gpu_nv_gpu_slot",
+                fields!(GpuSlot, [pci_addr, minor, info_len, padding, info_text]),
+            ),
+            (
+                "nvgpu_fd_translation_entry",
+                fields!(FdTranslation, [nr, payload_offset]),
+            ),
+            (
+                "virtio_gpu_nv_config",
+                fields!(
+                    VirtioGpuNvConfig,
+                    [
+                        driver_version,
+                        num_gpus,
+                        caps,
+                        gpu_device_ids,
+                        gpus,
+                        num_fd_translations,
+                        _pad,
+                        fd_translations,
+                    ]
+                ),
+            ),
+        ] {
+            let c = h.layout(name);
+            assert_eq!((c.size, &c.fields), (size, &fields), "struct {name}");
+        }
     }
 
     /// Every field the driver reads by a fixed offset.
@@ -322,6 +378,34 @@ mod tests {
         assert_eq!(&slot.pci_addr[..15], b"0000:01:00.0:ex");
     }
 
+    /// The UVM descriptor fields follow the RM escapes' in the table,
+    /// marked so an older guest driver, which matches `nr` against an
+    /// escape's 8-bit number, can never take one for an escape.
+    #[test]
+    fn the_uvm_descriptor_fields_follow_the_rm_ones_marked_as_uvm() {
+        // 535 has no ALLOC_DEVICE_P2P (565.57.01 on), so five.
+        let cfg = VirtioGpuNvConfig::new("535.129.03", &[]);
+        let n = cfg.num_fd_translations as usize;
+        assert_eq!(n, FD_CARRYING_IOCTLS.len() + 5);
+        let later = VirtioGpuNvConfig::new("610.57.04", &[]);
+        assert_eq!(
+            later.num_fd_translations as usize,
+            FD_CARRYING_IOCTLS.len() + 6
+        );
+        let table = cfg.fd_translations;
+        for (i, e) in table[..FD_CARRYING_IOCTLS.len()].iter().enumerate() {
+            let nr = e.nr;
+            assert_eq!(nr, FD_CARRYING_IOCTLS[i].0);
+        }
+        let uvm: Vec<(u32, u32)> = table[FD_CARRYING_IOCTLS.len()..n]
+            .iter()
+            .map(|e| (e.nr, e.payload_offset))
+            .collect();
+        assert!(uvm.iter().all(|(nr, _)| nr & crate::uvmfd::FDT_UVM != 0));
+        // MAP_EXTERNAL_ALLOCATION at 535's offset, in a 1200-byte block.
+        assert!(uvm.contains(&(crate::uvmfd::FDT_UVM | 33, 1184 | (1200 << 16))));
+    }
+
     #[test]
     fn more_gpus_than_slots_are_truncated_not_over_claimed() {
         let many: Vec<_> = (0..12)
@@ -329,7 +413,10 @@ mod tests {
             .collect();
         let cfg = VirtioGpuNvConfig::new("615.71.09", &many);
         let n = cfg.num_gpus;
-        assert_eq!(n as usize, MAX_GPUS, "claimed more GPUs than it can describe");
+        assert_eq!(
+            n as usize, MAX_GPUS,
+            "claimed more GPUs than it can describe"
+        );
     }
 
     #[test]

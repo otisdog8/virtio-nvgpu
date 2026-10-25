@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 //! Replaying real mapping lifetimes against the SHM allocator.
 //!
 //! `device/fixtures/mapping-replay.tsv` is the sequence of
@@ -10,6 +11,8 @@
 //! workload? A guest does not map once and stop. It runs an encode, tears it
 //! down, and runs another.
 
+#![forbid(unsafe_code)]
+
 #[cfg(test)]
 mod tests {
     use crate::shm::{PgprotKind, ShmAllocator, ShmRegion};
@@ -17,8 +20,14 @@ mod tests {
 
     #[derive(Debug)]
     enum Ev {
-        Map { id: u32, length: u64, zone: PgprotKind },
-        Unmap { id: u32 },
+        Map {
+            id: u32,
+            length: u64,
+            zone: PgprotKind,
+        },
+        Unmap {
+            id: u32,
+        },
     }
 
     struct Workload {
@@ -36,7 +45,10 @@ mod tests {
             }
             let f: Vec<&str> = line.split('\t').collect();
             match f[0] {
-                "W" => out.push(Workload { name: f[1].to_string(), events: Vec::new() }),
+                "W" => out.push(Workload {
+                    name: f[1].to_string(),
+                    events: Vec::new(),
+                }),
                 "M" => {
                     let zone = match f[3] {
                         "uc" => PgprotKind::Uncached,
@@ -61,11 +73,7 @@ mod tests {
 
     /// Run one workload's map/unmap sequence. Returns the regions still live at
     /// the end -- a process that exits without unmapping is the normal case.
-    fn run(
-        shm: &mut ShmAllocator,
-        w: &Workload,
-        iteration: usize,
-    ) -> Vec<ShmRegion> {
+    fn run(shm: &mut ShmAllocator, w: &Workload, iteration: usize) -> Vec<ShmRegion> {
         let mut live: HashMap<u32, ShmRegion> = HashMap::new();
         for ev in &w.events {
             match ev {
@@ -95,7 +103,11 @@ mod tests {
     #[test]
     fn fixture_parses_into_three_workloads() {
         let w = workloads();
-        assert_eq!(w.len(), 3, "expected vulkaninfo, cuda-kernel and nvenc-h264");
+        assert_eq!(
+            w.len(),
+            3,
+            "expected vulkaninfo, cuda-kernel and nvenc-h264"
+        );
         assert!(w.iter().all(|w| !w.events.is_empty()));
     }
 
@@ -105,6 +117,7 @@ mod tests {
     /// one 3-second 1080p encode maps ~116 MiB into a 128 MiB write-combine
     /// zone, and nothing was ever returned.
     #[test]
+    #[cfg_attr(miri, ignore = "Miri has no file-backed mappings")]
     fn a_guest_can_run_each_workload_many_times() {
         for w in workloads() {
             let mut shm = ShmAllocator::with_default_zones();
@@ -121,6 +134,7 @@ mod tests {
     /// Interleaved workloads, as a guest running a compositor and an encoder
     /// at once would produce.
     #[test]
+    #[cfg_attr(miri, ignore = "Miri has no file-backed mappings")]
     fn workloads_can_run_concurrently_and_repeatedly() {
         let ws = workloads();
         let mut shm = ShmAllocator::with_default_zones();
@@ -138,6 +152,7 @@ mod tests {
     /// After a full cycle the zones must be exactly as empty as they started,
     /// or something is leaking a little each time.
     #[test]
+    #[cfg_attr(miri, ignore = "Miri has no file-backed mappings")]
     fn a_completed_cycle_returns_every_byte() {
         let ws = workloads();
         let mut shm = ShmAllocator::with_default_zones();
@@ -148,13 +163,18 @@ mod tests {
                 shm.free(&region).expect("teardown free");
             }
         }
-        assert_eq!(before, shm.free_bytes(), "zones did not return to their initial free size");
+        assert_eq!(
+            before,
+            shm.free_bytes(),
+            "zones did not return to their initial free size"
+        );
     }
 
     /// Fragmentation check: repeated cycles must not whittle down the largest
     /// contiguous extent, or a big mapping eventually fails while plenty of
     /// total space remains.
     #[test]
+    #[cfg_attr(miri, ignore = "Miri has no file-backed mappings")]
     fn repeated_cycles_do_not_fragment_the_zones() {
         let ws = workloads();
         let mut shm = ShmAllocator::with_default_zones();
@@ -179,6 +199,7 @@ mod tests {
 
     /// A double free must be refused rather than corrupting the free list.
     #[test]
+    #[cfg_attr(miri, ignore = "Miri has no file-backed mappings")]
     fn freeing_twice_is_rejected() {
         let mut shm = ShmAllocator::with_default_zones();
         let region = shm.alloc(65536, PgprotKind::WriteCombine).expect("alloc");
@@ -191,6 +212,7 @@ mod tests {
     /// against; if the fixture or the allocator changes, this fails and the
     /// zone sizing gets revisited instead of silently drifting.
     #[test]
+    #[cfg_attr(miri, ignore = "Miri has no file-backed mappings")]
     fn peak_zone_use_matches_what_the_t4_did() {
         let expect = [
             ("vulkaninfo", 15.9_f64),
@@ -234,6 +256,7 @@ mod tests {
     /// rendering, CUDA holding its allocations and an encoder running. This
     /// overran the old 128 MiB write-combine zone.
     #[test]
+    #[cfg_attr(miri, ignore = "Miri has no file-backed mappings")]
     fn three_concurrent_workloads_fit() {
         let ws = workloads();
         let mut shm = ShmAllocator::with_default_zones();

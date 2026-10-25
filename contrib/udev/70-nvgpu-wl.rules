@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: Apache-2.0
+# /dev/nvgpu-wl*, the guest end of the virtio-nvgpu Wayland channel.
+#
+# Every open of it is a client of the host's compositor (or, in export mode,
+# the compositor of a host program), so only the Wayland proxy daemon,
+# nvgpu-wl-guest, should have it: guest clients reach the host through the
+# daemon's socket in their own XDG_RUNTIME_DIR. The module creates the node
+# root:root 0660 (virtio_gpu_nv wl_mode=); this gives it to a group for the
+# daemon's account:
+#
+#   groupadd --system nvgpu-wl
+#   chgrp nvgpu-wl "$(command -v nvgpu-wl-guest)"
+#   chmod 2755 "$(command -v nvgpu-wl-guest)"    # setgid nvgpu-wl
+#   install -m 0644 contrib/udev/70-nvgpu-wl.rules /etc/udev/rules.d/
+#   udevadm control --reload && udevadm trigger --subsystem-match=misc
+#
+# Give the group to the daemon, never to an application account: whoever
+# can open the node can hold host compositor connections it never reads,
+# and can charge channels to any process it names (CONNECT_FOR), spending
+# that process's share of the VM's channels. A setgid daemon runs as the
+# session's user with the group, and a setgid process is not dumpable, so
+# the session's applications cannot ptrace it for the descriptor. If the
+# daemon runs under an account of its own instead, that account and no
+# other is in the group.
+#
+# Do not add TAG+="uaccess": that hands the node to whoever sits at the
+# guest's seat, not to the daemon.
+SUBSYSTEM=="misc", KERNEL=="nvgpu-wl*", GROUP="nvgpu-wl", MODE="0660"

@@ -1,0 +1,165 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# The virtio-nvgpu backend for one VM, as a user of its own: instance N runs
+# as nvgpu-vmN, and the VMM that connects to it runs as nvgpu-vmmN, whose
+# group is nvgpu-vmN (DEPLOY.md, "Per-VM users"). Its socket,
+# /run/nvgpu/vmN/nvgpu.sock, is vhost-user-nvgpu@N.socket's: systemd binds
+# it, root's and open to that group alone (0660), in a directory of root's,
+# and hands it to the backend (socket activation). The backend's user owns
+# neither, so it can neither replace the socket nor intercept the VMM's
+# connection, whoever else runs as that user (SECURITY.md, "The backend's socket").
+#
+#   systemctl start vhost-user-nvgpu@0.service    # starts the socket too
+#   # then the VMM, as nvgpu-vmm0, with its vhost-user socket at
+#   # /run/nvgpu/vm0/nvgpu.sock; a VMM unit says
+#   #   BindsTo=vhost-user-nvgpu@0.service
+#   #   After=vhost-user-nvgpu@0.service
+#   # (BindsTo, not Requires: a backend that dies on its own -- a panic, a
+#   # seccomp kill, the OOM killer -- stops the VMM with it; Requires would
+#   # leave the VM running with a dead device). nvgpu-vmm-nesbox@.service and
+#   # nvgpu-vmm-crosvm@.service here are such units.
+#
+# Backend flags per VM go in /etc/virtio-nvgpu/vmN.env as
+# NVGPU_BACKEND_ARGS="--allow-compute ..." (DEPLOY.md, "Backend flags"), and
+# the Wayland modes' as NVGPU_WAYLAND_ARGS="--wayland-socket PATH" in the
+# same file: that file wins over any Environment= a drop-in sets, so every
+# flag goes there. A VM for one heavy application might say
+#   NVGPU_BACKEND_ARGS="--window-size 16384 --window-owner-share 90"
+# (DEPLOY.md, "Sizing the window": the VMM follows the size, and under
+# crosvm its MemoryMax must cover guest RAM plus the window), and one held
+# to 8 GiB of the GPU's video memory adds --vram-limit 8192 (DEPLOY.md,
+# "Video memory limit"). Opt-in RM allowlist groups go there too, as
+#   NVGPU_BACKEND_ARGS="--rm-allow-group thermal,health"
+# (DEPLOY.md, "Opt-in RM groups"; none by default), and RM's dma-buf
+# export (DEPLOY.md, "dma-buf export through RM"; off by default), which
+# needs nothing of the unit, as
+#   NVGPU_BACKEND_ARGS="--allow-dmabuf-export"
+# For capture injection (DEPLOY.md, "Capture injection") that file says
+#   NVGPU_BACKEND_ARGS="--inject-uid UID"
+# and vhost-user-nvgpu-inject@N.socket binds the helper's socket, open to
+# its group, and hands it over; a drop-in here then says
+#   [Unit]
+#   Requires=vhost-user-nvgpu-inject@N.socket
+# The tuning flags (DEPLOY.md, "Tuning") go in NVGPU_BACKEND_ARGS too:
+# --queue-poll-us (default 50; 0 or 10 on a host with many VMs),
+# --sched-slice-us (default 100) and --fifo-disable-{proc,vm}-{rate,burst}
+# (default 50, 40, 200 and 160). The backend is assumed at /usr/bin; adjust
+# the path (or use nix/module.nix) as installed.
+#
+# What the unit adds to the backend's own sandbox (device/src/sandbox.rs):
+# a cgroup of the VM's own with a memory and task bound and the OOM killer's
+# preference, a network namespace with only loopback (the backend keeps it
+# rather than making one, and it still hears the kernel's uevents), and a
+# read-only view of the file system with nothing executable but the backend
+# and its libraries. The backend needs, at run time: the GPU's nodes
+# (/dev/nvidia*, /dev/dri/renderD*, /dev/dri/card* with --kms-card,
+# /dev/udmabuf, /dev/null), /proc/driver/nvidia, /proc/self, /proc/cpuinfo
+# and the GPUs' directories in /sys, all of which this leaves reachable; its
+# sockets, which it is handed; and, in the Wayland modes, the compositor's
+# socket (DEPLOY.md, "The Wayland modes").
+
+[Unit]
+Description=virtio-nvgpu vhost-user backend for VM %i
+# The host driver must be loaded and nvidia_drm.modeset=1 (DEPLOY.md).
+After=systemd-modules-load.service
+Requires=vhost-user-nvgpu@%i.socket
+After=vhost-user-nvgpu@%i.socket
+# Ordering only: pulled in by the inject drop-in above, where there is one.
+After=vhost-user-nvgpu-inject@%i.socket
+
+[Service]
+Type=exec
+User=nvgpu-vm%i
+Group=nvgpu-vm%i
+# The device nodes' groups: render nodes (render), card nodes (video, only
+# with --kms-card), /dev/udmabuf (kvm). /dev/nvidia* are 0666. kvm also
+# opens /dev/kvm to the backend until its sandbox (Landlock) takes that
+# away at start; it never opens it.
+SupplementaryGroups=video render kvm
+Environment=RUST_LOG=warn
+EnvironmentFile=-/etc/virtio-nvgpu/vm%i.env
+# No --socket: the socket is descriptor 3, from vhost-user-nvgpu@%i.socket.
+# $NVGPU_WAYLAND_ARGS, unset, is no argument at all.
+# The GPUs' whole PCI config space, which sysfs gives the backend's own user
+# only 64 bytes of: root snapshots it first (the "+"), the backend reads it
+# once before its sandbox (nvgpu-pci-snapshot's header).
+ExecStartPre=+/usr/libexec/virtio-nvgpu/nvgpu-pci-snapshot /run/nvgpu/vm%i/pci
+ExecStart=/usr/bin/vhost-user-nvgpu --pci-config-dir /run/nvgpu/vm%i/pci $NVGPU_BACKEND_ARGS $NVGPU_WAYLAND_ARGS
+UMask=0077
+
+# A backend that stops takes its VM's device with it; the VMM must be
+# restarted with it (BindsTo= in the VMM's unit), so this is never
+# restarted alone.
+Restart=no
+TimeoutStopSec=10
+
+# Resources. Guest RAM is the VMM's; what the backend itself holds is mostly
+# Wayland shm (--wayland-shm-budget, 1 GiB by default) and queued compositor
+# output (--wayland-queue-budget, 256 MiB): raise MemoryMax with them.
+MemoryMax=2G
+MemorySwapMax=0
+# The queue thread's poll (--queue-poll-us) keeps up to a core busy while a
+# guest sends without pause; a quota bounds what one VM's backend takes of
+# the host (DEPLOY.md, "Tuning"). Unset by default: a backend held to less
+# than it needs answers its guest late.
+#CPUQuota=50%
+# Up to 16 executors, one reader per Wayland channel (64 by default), the
+# transport, pump, closer and hotplug threads.
+TasksMax=256
+OOMScoreAdjust=500
+LimitCORE=0
+# Where the backend's threads run, for a VM whose vCPUs are pinned
+# (DEPLOY.md, "vCPU placement"): the idle SMT siblings of the vCPUs' cores,
+# or another L3 domain; rig/pin-layout.sh prints a layout's (nix/module.nix:
+# vms.<n>.backendCpus). Unset, wherever the host scheduler puts them.
+#CPUAffinity=24-31
+
+# Privileges: none to begin with (the backend also drops them itself and
+# refuses to start as root or with CAP_SYS_ADMIN).
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+MemoryDenyWriteExecute=yes
+# AF_NETLINK: the uevent socket (--kms-card, --wayland-lease).
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+# No namespaces: PrivateNetwork= below gives the backend one with only
+# loopback, which it keeps rather than making its own (device/src/sandbox.rs).
+# A unit without PrivateNetwork= must allow "user net" here instead.
+RestrictNamespaces=yes
+KeyringMode=private
+ProtectHostname=yes
+ProtectKernelLogs=yes
+
+# The file system, read-only; no home directories (the Wayland modes need a
+# drop-in: DEPLOY.md); nothing executable but the backend and the libraries
+# it maps (it never execs). The paths that do not exist are passed over.
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateIPC=yes
+PrivateNetwork=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectProc=invisible
+NoExecPaths=/
+ExecPaths=/usr/bin/vhost-user-nvgpu -/usr/lib -/usr/lib64 -/lib -/lib64 -/nix/store
+# Not set, on purpose: PrivateDevices= and DevicePolicy=/DeviceAllow= (the
+# backend needs the GPU's nodes; Landlock already holds it to those; a unit
+# that adds a device policy must name major 195 as char-nvidia, which is what
+# the open modules register in /proc/devices -- char-nvidia-frontend alone
+# denies /dev/nvidia0), and
+# ProtectClock=, which closes the device policy as a side effect;
+# PrivateUsers= (RM, DRM and NVKMS take a guest's privilege from the
+# backend's real uid); ProcSubset=pid (it reads /proc/driver/nvidia);
+# RemoveIPC= (PrivateIPC= already keeps its System V IPC and message queues
+# its own, and in a drop-in that runs the backend as a login user -- export
+# mode -- it would remove that user's shared memory when the VM stops);
+# SystemCallFilter= (the backend installs its own allowlist once started).
+
+[Install]
+WantedBy=multi-user.target

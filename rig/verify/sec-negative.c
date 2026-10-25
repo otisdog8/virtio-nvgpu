@@ -1,0 +1,1490 @@
+// SPDX-License-Identifier: Apache-2.0
+/*
+ * sec-negative.c -- the guest half of the display-passthrough security tests.
+ *
+ * Every check here fires one ioctl a malicious guest would use to reach past
+ * its VM, and asserts the backend turns it away. The point is not that the
+ * guest gets an error -- an error is easy -- but that the *host* is never made
+ * to act on the guest's request: no host-kernel out-of-bounds read, no foreign
+ * client dup'd, no VMM pointer followed, no other tenant's pixels scanned out.
+ * The strong proof of each refusal is a backend unit test that asserts the host
+ * ioctl was never issued (docs/review/NVK_VERIFICATION.md §5.1, and
+ * docs/review/FINDINGS.md); this program is the end-to-end confirmation that the same
+ * refusal is wired all the way from a guest process. sec-negative.sh runs it
+ * inside the guest and prints the guest dmesg tail after (the guest must
+ * survive); the operator checks the host side -- host dmesg clean and the
+ * backend still serving -- as TESTING.md §"Security negative tests" sets out.
+ *
+ * It uses only public UAPI: the NVIDIA escape numbers from
+ * nvidia-driver/.../nv_escape.h and the NVOS parameter layouts from
+ * nvidia-driver/.../nvos.h (both mirrored below so the program builds anywhere),
+ * and libdrm's own drm.h / drm_mode.h. The nvidia-drm command numbers are the
+ * repo's own (gen/schema/nvidia_drm.py: DRM_COMMAND_BASE + n).
+ *
+ * A test is PASS when the dangerous action is refused (the ioctl fails, or in
+ * GETFB's case hands back a zero handle). It is FAIL only when the action is
+ * accepted. SKIP means the mode this test needs was not offered (no card/lease
+ * fd). Exit status is the number of FAILs, so the wrapper can gate on it.
+ * T9 is the one positive control: a duplicate between two clients of one
+ * process, which must be made (it FAILs when refused), so that T8's refusal of
+ * the same duplicate across processes is known to be the backend's. T10
+ * carries its own control (a device sharing this process's own client).
+ * T8 and T10 need a guest module that says which process makes each call
+ * (BCAP_PROC_ID, BCAP_PROC_EUID); without it both are refused too.
+ * T14-T16 are the opt-in RM groups (--rm-allow-group): with the group
+ * served, its rule's own status; without, the allowlist's NOT_SUPPORTED.
+ * T17-T20 are RM's dma-buf export: T17 is their control, which exports the
+ * process's own video memory where the backend serves it
+ * (--allow-dmabuf-export) and SKIPs where it refuses the escape; T18-T20
+ * (another process's memory, a freed object, a second export into one
+ * dma-buf) must be refused either way.
+ *
+ * Build:  see sec-negative.sh (gcc, libdrm headers, no other deps).
+ */
+
+#define _GNU_SOURCE
+#include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+#include <drm.h>
+#include <drm_fourcc.h>
+#include <drm_mode.h>
+
+/* ---- NVIDIA escape ABI (nv-ioctl-numbers.h, nv_escape.h) ---------------- */
+
+#define NV_IOCTL_MAGIC 'F'
+#define NV_ESC_RM_ALLOC_MEMORY 0x27
+#define NV_ESC_RM_CONTROL 0x2A
+#define NV_ESC_RM_ALLOC 0x2B
+#define NV_ESC_RM_VID_HEAP_CONTROL 0x4A
+#define NV_ESC_REGISTER_FD 0xC9 /* NV_IOCTL_BASE + 1; nv_ioctl_register_fd_t {int ctl_fd;} */
+#define NV_ESC_RM_DUP_OBJECT 0x34
+#define NV_ESC_RM_SHARE 0x35
+
+/* NVIDIA builds its escape numbers as _IOC(dir, 'F', nr, sizeof(params)). */
+#define NV_IOWR(nr, size) _IOC(_IOC_READ | _IOC_WRITE, NV_IOCTL_MAGIC, (nr), (size))
+
+/* Classes and functions named by the finding, from the SDK headers. */
+#define NV01_ROOT 0x00000000u
+#define NV01_MEMORY_SYSTEM_OS_DESCRIPTOR 0x00000071u
+#define NVOS32_FUNCTION_ALLOC_OS_DESCRIPTOR 8
+
+/* A device, and a VA space under it: the simplest object RM duplicates
+ * (vaspaceapiCanCopy), with parameters that are all zeros by default. */
+#define NV01_DEVICE_0 0x00000080u
+#define FERMI_VASPACE_A 0x000090f1u
+#define NV0080_ALLOC_PARAMETERS_SIZE 56
+#define NV_VASPACE_ALLOCATION_PARAMETERS_SIZE 56
+
+/* What RM answers a caller without the right (nvstatuscodes.h), and what the
+ * backend answers for it when it refuses a share or a duplicate itself. */
+#define NV_ERR_INSUFFICIENT_PERMISSIONS 0x1bu
+
+/* rs_access.h: RS_SHARE_TYPE_ALL, RS_SHARE_ACTION_FLAG_COMPOSE, and the
+ * DUP_OBJECT right as a mask bit. */
+#define RS_SHARE_TYPE_ALL 1
+#define RS_SHARE_ACTION_FLAG_COMPOSE 4
+#define RS_ACCESS_DUP_OBJECT_BIT 1u
+
+/* A non-privileged control that carries embedded pointers and runs on the
+ * client root object, so it needs no device/subdevice to reach the embedded-
+ * pointer copy path (NV0000_CTRL_CMD_SYSTEM_GET_BUILD_VERSION, 0x00000101). */
+#define NV0000_CTRL_CMD_SYSTEM_GET_BUILD_VERSION 0x00000101u
+
+/* NVOS64_PARAMETERS (nvos.h): the modern RM_ALLOC arg. */
+typedef struct {
+	uint32_t hRoot;
+	uint32_t hObjectParent;
+	uint32_t hObjectNew;
+	uint32_t hClass;
+	uint64_t pAllocParms;
+	uint64_t pRightsRequested;
+	uint32_t paramsSize;
+	uint32_t flags;
+	uint32_t status;
+	uint32_t _pad;
+} nvos64_t;
+
+/* NVOS54_PARAMETERS (nvos.h): RM_CONTROL. */
+typedef struct {
+	uint32_t hClient;
+	uint32_t hObject;
+	uint32_t cmd;
+	uint32_t flags;
+	uint64_t params;
+	uint32_t paramsSize;
+	uint32_t status;
+} nvos54_t;
+
+/* NVOS55_PARAMETERS (nvos.h): RM_DUP_OBJECT. */
+typedef struct {
+	uint32_t hClient;
+	uint32_t hParent;
+	uint32_t hObject;
+	uint32_t hClientSrc;
+	uint32_t hObjectSrc;
+	uint32_t flags;
+	uint32_t status;
+} nvos55_t;
+
+/* NVOS57_PARAMETERS (nvos.h): RM_SHARE, with its RS_SHARE_POLICY. */
+typedef struct {
+	uint32_t hClient;
+	uint32_t hObject;
+	uint32_t target;
+	uint32_t accessMask;
+	uint16_t type;
+	uint8_t action;
+	uint8_t _pad;
+	uint32_t status;
+} nvos57_t;
+
+/* NVOS32_PARAMETERS is a big union; we only need the header far enough to set
+ * `function`, so the backend can refuse ALLOC_OS_DESCRIPTOR by function alone.
+ * A 1 KiB tail covers every arm without spelling the union out. */
+typedef struct {
+	uint32_t hRoot;
+	uint32_t hObjectParent;
+	uint32_t function;
+	uint32_t hVASpace;
+	uint16_t ivcHeapNumber;
+	uint16_t _pad;
+	uint32_t status;
+	uint64_t total;
+	uint64_t free;
+	uint8_t data[1024];
+} nvos32_t;
+
+/* NV0000_CTRL_SYSTEM_GET_BUILD_VERSION_PARAMS: three embedded char* buffers.
+ * We hand the guest-chosen pointers a value the host must never follow. */
+typedef struct {
+	uint32_t sizeOfStrings;
+	uint32_t _pad;
+	uint64_t pDriverVersionBuffer;
+	uint64_t pVersionBuffer;
+	uint64_t pTitleBuffer;
+	uint32_t changelistNumber;
+	uint32_t officialChangelistNumber;
+} build_version_params_t;
+
+/* ---- nvidia-drm command numbers (gen/schema/nvidia_drm.py) -------------- */
+
+#define DRM_COMMAND_BASE 0x40
+#define DRM_NVIDIA_GRANT_PERMISSIONS (DRM_COMMAND_BASE + 0x12)
+#define DRM_NVIDIA_SEMSURF_FENCE_CTX_CREATE (DRM_COMMAND_BASE + 0x14)
+#define NV_DRM_PERMISSIONS_TYPE_SUB_OWNER 3
+
+struct grant_permissions_params { /* drm_nvidia_grant_permissions_params */
+	int32_t fd;
+	uint32_t dpyId;
+	uint32_t type;
+};
+
+struct semsurf_ctx_create_params { /* drm_nvidia_semsurf_fence_ctx_create_params */
+	uint64_t index;
+	uint64_t nvkms_params_ptr;
+	uint64_t nvkms_params_size;
+	uint32_t handle;
+	uint32_t __pad;
+};
+
+#define DRM_IOCTL_NVIDIA_GRANT_PERMISSIONS \
+	DRM_IOWR(DRM_NVIDIA_GRANT_PERMISSIONS, struct grant_permissions_params)
+#define DRM_IOCTL_NVIDIA_SEMSURF_FENCE_CTX_CREATE \
+	DRM_IOWR(DRM_NVIDIA_SEMSURF_FENCE_CTX_CREATE, struct semsurf_ctx_create_params)
+
+/* A guest virtual address the backend must never make the host follow. Picked
+ * to be non-canonical-ish and certainly not a buffer we own. */
+#define POISON_PTR 0xdeadbeef00000000ull
+
+/* ---- test bookkeeping --------------------------------------------------- */
+
+static int fails;
+static int passes;
+static int skips;
+
+static void pass(const char *name, const char *how)
+{
+	printf("  PASS  %-28s %s\n", name, how);
+	passes++;
+}
+
+static void fail(const char *name, const char *how)
+{
+	printf("  FAIL  %-28s %s\n", name, how);
+	fails++;
+}
+
+static void skip(const char *name, const char *why)
+{
+	printf("  SKIP  %-28s %s\n", name, why);
+	skips++;
+}
+
+/* Allocate an RM client (NV01_ROOT) on /dev/nvidiactl and return its handle,
+ * or 0. hObjectNew is an in/out field: RM fills it with the assigned handle. */
+static uint32_t alloc_client(int ctl)
+{
+	nvos64_t a = {0};
+	a.hClass = NV01_ROOT;
+	a.hObjectNew = 0;
+	if (ioctl(ctl, NV_IOWR(NV_ESC_RM_ALLOC, sizeof(a)), &a) != 0)
+		return 0;
+	if (a.status != 0)
+		return 0;
+	return a.hObjectNew;
+}
+
+/* T1: OS-descriptor allocation. RM would pin memory named by a CPU address in
+ * the *backend's* address space; the backend must refuse hClass 0x71 and the
+ * VID_HEAP_CONTROL ALLOC_OS_DESCRIPTOR function outright. */
+static void t_os_descriptor(int ctl)
+{
+	nvos64_t a = {0};
+	a.hClass = NV01_MEMORY_SYSTEM_OS_DESCRIPTOR;
+	a.pAllocParms = POISON_PTR;
+	a.paramsSize = 64;
+	int r = ioctl(ctl, NV_IOWR(NV_ESC_RM_ALLOC, sizeof(a)), &a);
+	if (r == 0 && a.status == 0)
+		fail("os-descriptor RM_ALLOC 0x71", "accepted (host may pin VMM memory)");
+	else
+		pass("os-descriptor RM_ALLOC 0x71", "refused");
+
+	nvos32_t h = {0};
+	h.function = NVOS32_FUNCTION_ALLOC_OS_DESCRIPTOR;
+	r = ioctl(ctl, NV_IOWR(NV_ESC_RM_VID_HEAP_CONTROL, sizeof(h)), &h);
+	if (r == 0 && h.status == 0)
+		fail("VID_HEAP ALLOC_OS_DESC", "accepted");
+	else
+		pass("VID_HEAP ALLOC_OS_DESC", "refused");
+}
+
+/* T2: an RM_CONTROL whose parameter block carries embedded pointers. The
+ * backend must make itself the only authority for every NvP64 -- it relocates
+ * each to a buffer of its own, or refuses -- so a guest-chosen pointer is never
+ * the address RM copies to. We give it POISON_PTR; the host must not fault. */
+static void t_raw_pointer_control(int ctl, uint32_t client)
+{
+	if (!client) {
+		skip("raw-pointer RM_CONTROL", "no RM client (alloc failed)");
+		return;
+	}
+	build_version_params_t p = {0};
+	p.sizeOfStrings = 4096;
+	p.pDriverVersionBuffer = POISON_PTR;
+	p.pVersionBuffer = POISON_PTR + 0x1000;
+	p.pTitleBuffer = POISON_PTR + 0x2000;
+
+	nvos54_t c = {0};
+	c.hClient = client;
+	c.hObject = client; /* the client root answers this control */
+	c.cmd = NV0000_CTRL_CMD_SYSTEM_GET_BUILD_VERSION;
+	c.params = (uint64_t)(uintptr_t)&p; /* the outer pointer the guest driver relocates */
+	c.paramsSize = sizeof(p);
+
+	int r = ioctl(ctl, NV_IOWR(NV_ESC_RM_CONTROL, sizeof(c)), &c);
+	/*
+	 * PASS in either shape: the call is refused, or it succeeds because the
+	 * backend relocated the embedded pointers to its own buffers -- in which
+	 * case our POISON_PTR was overwritten before the host saw it, and our
+	 * copy of p is left with the backend's pointer values, not ours. A FAIL
+	 * is the host having copied to POISON_PTR, which we cannot see directly;
+	 * the backend unit test asserts it, and here we assert only that we and
+	 * the host survived (checked by the wrapper) and that our poison values
+	 * did not reach the host unchanged as a successful deref.
+	 */
+	if (r == 0 && c.status == 0 &&
+	    p.pDriverVersionBuffer == POISON_PTR &&
+	    p.pVersionBuffer == POISON_PTR + 0x1000)
+		fail("raw-pointer RM_CONTROL", "accepted with guest pointers intact");
+	else
+		pass("raw-pointer RM_CONTROL",
+		     r == 0 ? "accepted, pointers relocated by backend" : "refused");
+}
+
+/* T3: SEMSURF_FENCE_CTX_CREATE (nvidia-drm 0x54) with an enormous index and a
+ * poisoned nested params block. The host adds index*stride to a kernel mapping
+ * with no bound (C-1); the backend must bound the index and refuse a client it
+ * did not allocate, before the host ioctl. Runs on the render node. */
+static void t_semsurf_huge_index(int render)
+{
+	if (render < 0) {
+		skip("semsurf 0x54 huge index", "no render node");
+		return;
+	}
+	struct semsurf_ctx_create_params p = {0};
+	p.index = 0xffffffffffffffffull; /* index*stride overflows */
+	p.nvkms_params_ptr = POISON_PTR;
+	p.nvkms_params_size = 16;
+	int r = ioctl(render, DRM_IOCTL_NVIDIA_SEMSURF_FENCE_CTX_CREATE, &p);
+	if (r == 0)
+		fail("semsurf 0x54 huge index", "accepted (host OOB read primitive)");
+	else
+		pass("semsurf 0x54 huge index", "refused");
+}
+
+/* T4: GRANT_PERMISSIONS with SUB_OWNER, which blanks every head and hands whole-
+ * device NVKMS ownership over. The backend allows only type == MODESET. Needs a
+ * KMS/lease file. */
+static void t_grant_sub_owner(int kms)
+{
+	if (kms < 0) {
+		skip("GRANT_PERMISSIONS SUB_OWNER", "no card/lease fd (--kms)");
+		return;
+	}
+	struct grant_permissions_params g = {0};
+	g.fd = -1;
+	g.dpyId = 0;
+	g.type = NV_DRM_PERMISSIONS_TYPE_SUB_OWNER;
+	int r = ioctl(kms, DRM_IOCTL_NVIDIA_GRANT_PERMISSIONS, &g);
+	if (r == 0)
+		fail("GRANT_PERMISSIONS SUB_OWNER", "accepted (device-wide ownership)");
+	else
+		pass("GRANT_PERMISSIONS SUB_OWNER", "refused");
+}
+
+/* T5: ADDFB2 takes only GEM handles this file made. The backend re-homes each
+ * handle from the guest file that owns it and IDENTIFYs it as NVKMS memory on
+ * the target file before the host sees the ioctl. A dumb buffer made on this
+ * file is NVKMS memory under nvidia-drm (nv_drm_dumb_create), so ADDFB2 of it
+ * must work, as it does natively: the positive control. A handle this file
+ * never made, and one it has just closed, must be refused. Needs a KMS/lease
+ * file. */
+static int addfb2_handle(int kms, uint32_t handle, uint32_t pitch, uint32_t *fb_id)
+{
+	struct drm_mode_fb_cmd2 fb = {0};
+	fb.width = 64;
+	fb.height = 64;
+	fb.pixel_format = DRM_FORMAT_XRGB8888;
+	fb.handles[0] = handle;
+	fb.pitches[0] = pitch;
+	int r = ioctl(kms, DRM_IOCTL_MODE_ADDFB2, &fb);
+	*fb_id = fb.fb_id;
+	return r;
+}
+
+static void t_addfb2_non_nvkms(int kms)
+{
+	if (kms < 0) {
+		skip("ADDFB2 own dumb buffer", "no card/lease fd (--kms)");
+		skip("ADDFB2 handle never made", "no card/lease fd (--kms)");
+		skip("ADDFB2 closed handle", "no card/lease fd (--kms)");
+		return;
+	}
+	struct drm_mode_create_dumb cd = {0};
+	cd.width = 64;
+	cd.height = 64;
+	cd.bpp = 32;
+	if (ioctl(kms, DRM_IOCTL_MODE_CREATE_DUMB, &cd) != 0) {
+		skip("ADDFB2 own dumb buffer", "CREATE_DUMB unavailable here");
+		return;
+	}
+	uint32_t fb_id = 0;
+	if (addfb2_handle(kms, cd.handle, cd.pitch, &fb_id) == 0) {
+		pass("ADDFB2 own dumb buffer", "allowed (positive control)");
+		ioctl(kms, DRM_IOCTL_MODE_RMFB, &fb_id);
+	} else {
+		fail("ADDFB2 own dumb buffer", strerror(errno));
+	}
+
+	/* A handle number far past anything this file has made. */
+	if (addfb2_handle(kms, cd.handle + 0x10000, cd.pitch, &fb_id) == 0) {
+		fail("ADDFB2 handle never made", "accepted");
+		ioctl(kms, DRM_IOCTL_MODE_RMFB, &fb_id);
+	} else {
+		pass("ADDFB2 handle never made", "refused");
+	}
+
+	struct drm_mode_destroy_dumb dd = {.handle = cd.handle};
+	ioctl(kms, DRM_IOCTL_MODE_DESTROY_DUMB, &dd);
+	if (addfb2_handle(kms, cd.handle, cd.pitch, &fb_id) == 0) {
+		fail("ADDFB2 closed handle", "accepted");
+		ioctl(kms, DRM_IOCTL_MODE_RMFB, &fb_id);
+	} else {
+		pass("ADDFB2 closed handle", "refused");
+	}
+}
+
+/* T6: GETFB of framebuffer ids this file did not create. The backend returns a
+ * handle only for FBs the same file made, and zeroes the handle otherwise, so a
+ * guest cannot obtain a GEM handle for another tenant's scanout buffer. Needs a
+ * KMS/lease file. */
+static void t_getfb_foreign(int kms)
+{
+	if (kms < 0) {
+		skip("GETFB foreign fb", "no card/lease fd (--kms)");
+		return;
+	}
+	int leaked = 0, probed = 0;
+	for (uint32_t id = 1; id <= 64; id++) {
+		struct drm_mode_fb_cmd r = {0};
+		r.fb_id = id;
+		if (ioctl(kms, DRM_IOCTL_MODE_GETFB, &r) != 0)
+			continue; /* ENOENT: no such fb, fine */
+		probed++;
+		if (r.handle != 0) {
+			leaked++;
+			struct drm_gem_close gc = {.handle = r.handle};
+			ioctl(kms, DRM_IOCTL_GEM_CLOSE, &gc);
+		}
+	}
+	if (leaked)
+		fail("GETFB foreign fb", "handed back a handle for a foreign fb");
+	else
+		pass("GETFB foreign fb", probed ? "existing fbs gave handle 0"
+					       : "no foreign fbs visible");
+}
+
+/* Allocate `class` as `handle` under `parent` of `client`, with `size` bytes
+ * of zeroed parameters; RM's status, or -1 for a failed ioctl. */
+static int64_t alloc_object(int fd, uint32_t client, uint32_t parent,
+			    uint32_t handle, uint32_t class, uint32_t size)
+{
+	uint8_t params[64] = {0};
+	nvos64_t a = {0};
+	a.hRoot = client;
+	a.hObjectParent = parent;
+	a.hObjectNew = handle;
+	a.hClass = class;
+	a.pAllocParms = (uint64_t)(uintptr_t)params;
+	a.paramsSize = size;
+	if (ioctl(fd, NV_IOWR(NV_ESC_RM_ALLOC, sizeof(a)), &a) != 0)
+		return -1;
+	return a.status;
+}
+
+#define DEV_HANDLE 0xde700001u
+#define VAS_HANDLE 0x7a500001u
+#define DUP_HANDLE 0xd0b00001u
+
+/* A client on `fd` with a device and a VA space under it: the VA space is what
+ * T8 and T9 duplicate. The client's handle, or 0. */
+static uint32_t client_with_vaspace(int fd)
+{
+	/* RM lets a client allocate a device only through a control file the
+	 * GPU's file has been registered with (NV_ESC_REGISTER_FD, as NVIDIA's
+	 * own userspace does first); otherwise NV_ERR_INSUFFICIENT_PERMISSIONS. */
+	int gpu = open("/dev/nvidia0", O_RDWR | O_CLOEXEC);
+	if (gpu < 0 || ioctl(gpu, NV_IOWR(NV_ESC_REGISTER_FD, sizeof(int)), &fd) != 0) {
+		fprintf(stderr, "sec-negative: registering the control file with /dev/nvidia0: %s\n",
+			strerror(errno));
+		return 0;
+	}
+	uint32_t c = alloc_client(fd);
+	if (!c)
+		return 0;
+	int64_t st = alloc_object(fd, c, c, DEV_HANDLE, NV01_DEVICE_0,
+				  NV0080_ALLOC_PARAMETERS_SIZE);
+	if (st != 0) {
+		fprintf(stderr, "sec-negative: device alloc: status %#llx\n", (long long)st);
+		return 0;
+	}
+	st = alloc_object(fd, c, DEV_HANDLE, VAS_HANDLE, FERMI_VASPACE_A,
+			  NV_VASPACE_ALLOCATION_PARAMETERS_SIZE);
+	if (st != 0) {
+		fprintf(stderr, "sec-negative: VA space alloc: status %#llx\n", (long long)st);
+		return 0;
+	}
+	return c;
+}
+
+/* Duplicate the VA space of `src` into `dst`'s device (`dst` made by
+ * client_with_vaspace on `fd`); RM's status, or -1 for a failed ioctl. */
+static int64_t dup_vaspace(int fd, uint32_t dst, uint32_t src, uint32_t as)
+{
+	nvos55_t d = {0};
+	d.hClient = dst;
+	d.hParent = DEV_HANDLE;
+	d.hObject = as;
+	d.hClientSrc = src;
+	d.hObjectSrc = VAS_HANDLE;
+	if (ioctl(fd, NV_IOWR(NV_ESC_RM_DUP_OBJECT, sizeof(d)), &d) != 0)
+		return -1;
+	return d.status;
+}
+
+/* T7: RM_SHARE of type ALL. RM would let every client on the host duplicate
+ * the object -- other VMs' included, since RM sees them all as processes
+ * like the backend; the backend refuses a share that reaches outside the VM
+ * before RM sees it, with RM's own status for a caller without the right. */
+static void t_share_all(int ctl, uint32_t client)
+{
+	if (!client) {
+		skip("RM_SHARE type ALL", "no RM client (alloc failed)");
+		return;
+	}
+	nvos57_t sh = {0};
+	sh.hClient = client;
+	sh.hObject = client;
+	sh.accessMask = RS_ACCESS_DUP_OBJECT_BIT;
+	sh.type = RS_SHARE_TYPE_ALL;
+	sh.action = RS_SHARE_ACTION_FLAG_COMPOSE;
+	int r = ioctl(ctl, NV_IOWR(NV_ESC_RM_SHARE, sizeof(sh)), &sh);
+	if (r == 0 && sh.status == 0)
+		fail("RM_SHARE type ALL", "accepted (shared with every host client)");
+	else if (r == 0 && sh.status == NV_ERR_INSUFFICIENT_PERMISSIONS)
+		pass("RM_SHARE type ALL", "refused (NV_ERR_INSUFFICIENT_PERMISSIONS)");
+	else
+		pass("RM_SHARE type ALL", "refused");
+}
+
+/* T9, the positive control for T8: one process, two files, a client on each.
+ * RM lets a process duplicate between its own clients, and so must the
+ * backend -- this is what every CUDA/GL/Vulkan interop inside one process
+ * rests on. PASS when the duplicate is made; FAIL when it is refused. Returns
+ * whether it was made, so T8's refusal can be told from RM failing the
+ * duplicate for some other reason. */
+static int t_dup_same_process(int ctl, uint32_t dst)
+{
+	if (!dst) {
+		skip("DUP same process", "no client with a VA space here");
+		return 0;
+	}
+	int fd = open("/dev/nvidiactl", O_RDWR | O_CLOEXEC);
+	uint32_t src = fd >= 0 ? client_with_vaspace(fd) : 0;
+	if (!src) {
+		skip("DUP same process", "no second client with a VA space");
+		if (fd >= 0)
+			close(fd);
+		return 0;
+	}
+	int64_t st = dup_vaspace(ctl, dst, src, DUP_HANDLE);
+	int ok = st == 0;
+	if (ok)
+		pass("DUP same process", "allowed (positive control)");
+	else if (st == NV_ERR_INSUFFICIENT_PERMISSIONS)
+		fail("DUP same process", "refused: the backend keeps a process from its own objects");
+	else {
+		char how[64];
+		snprintf(how, sizeof(how), "RM failed it (status 0x%llx)", (long long)st);
+		fail("DUP same process", how);
+	}
+	close(fd);
+	return ok;
+}
+
+/* T8: a forked child makes a client and a VA space on a file of its own; the
+ * parent, knowing the handles, duplicates the child's VA space into its own
+ * client. Natively RM refuses (the two clients' processes differ, the default
+ * PID share policy); through the backend both clients are the backend's
+ * process to RM, so the backend refuses it, knowing from the guest kernel
+ * which guest process made each client. */
+static void t_dup_other_process(int ctl, uint32_t dst, int control_ok)
+{
+	if (!dst) {
+		skip("DUP other process", "no client with a VA space here");
+		return;
+	}
+	int up[2], down[2];
+	if (pipe(up) || pipe(down)) {
+		skip("DUP other process", "pipe failed");
+		return;
+	}
+	pid_t pid = fork();
+	if (pid < 0) {
+		skip("DUP other process", "fork failed");
+		return;
+	}
+	if (pid == 0) {
+		int fd = open("/dev/nvidiactl", O_RDWR | O_CLOEXEC);
+		uint32_t c = fd >= 0 ? client_with_vaspace(fd) : 0;
+		char go;
+		if (write(up[1], &c, sizeof(c)) != sizeof(c))
+			_exit(1);
+		/* Keep the client alive until the parent has tried. */
+		if (read(down[0], &go, 1) < 0)
+			_exit(1);
+		_exit(0);
+	}
+	uint32_t child = 0;
+	if (read(up[0], &child, sizeof(child)) != sizeof(child))
+		child = 0;
+	if (!child) {
+		skip("DUP other process", "the child could not make a VA space");
+	} else {
+		int64_t st = dup_vaspace(ctl, dst, child, DUP_HANDLE + 1);
+		if (st == 0)
+			fail("DUP other process", "accepted (another process's object)");
+		else if (st == NV_ERR_INSUFFICIENT_PERMISSIONS)
+			pass("DUP other process", "refused (NV_ERR_INSUFFICIENT_PERMISSIONS)");
+		else if (!control_ok)
+			skip("DUP other process",
+			     "refused, but T9 could not duplicate either: inconclusive");
+		else
+			pass("DUP other process", "refused");
+	}
+	if (write(down[1], "x", 1) != 1)
+		kill(pid, SIGKILL);
+	waitpid(pid, NULL, 0);
+	close(up[0]);
+	close(up[1]);
+	close(down[0]);
+	close(down[1]);
+}
+
+/* A device under `client` whose VA space is `share`'s (NV0080's hClientShare,
+ * at 4 in NV0080_ALLOC_PARAMETERS); RM's status, or -1 for a failed ioctl. */
+static int64_t alloc_device_sharing(int fd, uint32_t client, uint32_t share)
+{
+	uint8_t params[NV0080_ALLOC_PARAMETERS_SIZE] = {0};
+	memcpy(params + 4, &share, sizeof(share));
+	nvos64_t a = {0};
+	a.hRoot = client;
+	a.hObjectParent = client;
+	a.hObjectNew = DEV_HANDLE + 2;
+	a.hClass = NV01_DEVICE_0;
+	a.pAllocParms = (uint64_t)(uintptr_t)params;
+	a.paramsSize = sizeof(params);
+	if (ioctl(fd, NV_IOWR(NV_ESC_RM_ALLOC, sizeof(a)), &a) != 0)
+		return -1;
+	return a.status;
+}
+
+/* T10: a second client named in parameters, of another guest user. A child
+ * drops to uid 65534 and makes a client; the parent makes a device that
+ * shares that client's VA space. RM checks hClientShare with clientValidate:
+ * natively the caller's file (the default, strict) or its euid -- and to RM
+ * every guest process is the backend's. The backend holds the field to RM's
+ * rule with the guest's processes and euids, and refuses it before RM sees it
+ * (NV_ERR_INSUFFICIENT_PERMISSIONS; RM's own strict refusal would be
+ * NV_ERR_INVALID_CLIENT). Control first: a device sharing a client of this
+ * process's own, which the backend must not refuse. Needs root, to drop to
+ * another uid. */
+static void t_share_other_user(int ctl, uint32_t client, uint32_t mine)
+{
+	if (!client || !mine) {
+		skip("second client of another user", "no clients here");
+		return;
+	}
+	if (geteuid() != 0) {
+		skip("second client of another user", "not root: cannot run a child as another uid");
+		return;
+	}
+	/* The control is informational: the refusal below is told apart by its
+	 * status, whatever RM makes of a shared VA space here. */
+	int64_t st = alloc_device_sharing(ctl, client, mine);
+	printf("  (control: a device sharing this process's own client: status 0x%llx%s)\n",
+	       (long long)st, st == NV_ERR_INSUFFICIENT_PERMISSIONS ? ", the backend's refusal: wrong" : "");
+	if (st == NV_ERR_INSUFFICIENT_PERMISSIONS)
+		fail("second client of another user", "control refused: the backend keeps a process from its own client");
+	int up[2], down[2];
+	if (pipe(up) || pipe(down)) {
+		skip("second client of another user", "pipe failed");
+		return;
+	}
+	pid_t pid = fork();
+	if (pid < 0) {
+		skip("second client of another user", "fork failed");
+		return;
+	}
+	if (pid == 0) {
+		uint32_t c = 0;
+		if (setresgid(65534, 65534, 65534) == 0 && setresuid(65534, 65534, 65534) == 0) {
+			int fd = open("/dev/nvidiactl", O_RDWR | O_CLOEXEC);
+			c = fd >= 0 ? alloc_client(fd) : 0;
+		}
+		char go;
+		if (write(up[1], &c, sizeof(c)) != sizeof(c))
+			_exit(1);
+		if (read(down[0], &go, 1) < 0)
+			_exit(1);
+		_exit(0);
+	}
+	uint32_t theirs = 0;
+	if (read(up[0], &theirs, sizeof(theirs)) != sizeof(theirs))
+		theirs = 0;
+	uint32_t fresh = theirs ? alloc_client(ctl) : 0;
+	if (!theirs || !fresh) {
+		skip("second client of another user", "the child (uid 65534) or a fresh client could not be made");
+	} else {
+		st = alloc_device_sharing(ctl, fresh, theirs);
+		if (st == 0)
+			fail("second client of another user", "accepted (another user's VA space)");
+		else if (st == NV_ERR_INSUFFICIENT_PERMISSIONS)
+			pass("second client of another user", "refused by the backend (NV_ERR_INSUFFICIENT_PERMISSIONS)");
+		else {
+			char how[112];
+			snprintf(how, sizeof(how),
+				 "refused by RM itself (0x%llx), so the backend let it through", (long long)st);
+			fail("second client of another user", how);
+		}
+	}
+	if (write(down[1], "x", 1) != 1)
+		kill(pid, SIGKILL);
+	waitpid(pid, NULL, 0);
+	close(up[0]);
+	close(up[1]);
+	close(down[0]);
+	close(down[1]);
+}
+
+/* T11: RM's import from an export descriptor (NV0000 OS_UNIX
+ * IMPORT_OBJECTS_FROM_FD, 0x3d0c) naming a number this process has not
+ * open, and a file that is not one of the device's. RM resolves the number
+ * in the backend, which holds every guest process's control files, so a
+ * number the guest driver did not translate would import another process's
+ * exported memory into this client. It must fail with EBADF before RM is
+ * asked: an ioctl that succeeds (whatever RM's status) reached the host. */
+#define NV0000_CTRL_CMD_OS_UNIX_IMPORT_OBJECTS_FROM_FD 0x3d0c
+
+typedef struct {
+	int32_t fd;
+	uint32_t hParent;
+	uint32_t objects[128];
+	uint8_t objectTypes[128];
+	uint16_t numObjects;
+	uint16_t index;
+} import_objects_params_t;
+
+static void t_import_foreign_fd(int ctl, uint32_t client)
+{
+	if (!client) {
+		skip("import from a foreign fd", "no RM client (alloc failed)");
+		return;
+	}
+	int probe = -1;
+	for (int n = 3; n < 256; n++)
+		if (fcntl(n, F_GETFD) < 0) {
+			probe = n;
+			break;
+		}
+	int other = open("/dev/null", O_RDWR | O_CLOEXEC);
+	int cands[2] = {probe, other};
+	const char *what[2] = {"a number not open here", "a file not the device's"};
+	for (int i = 0; i < 2; i++) {
+		if (cands[i] < 0)
+			continue;
+		import_objects_params_t p = {0};
+		p.fd = cands[i];
+		p.hParent = client;
+		p.numObjects = 1;
+		nvos54_t c = {0};
+		c.hClient = client;
+		c.hObject = client;
+		c.cmd = NV0000_CTRL_CMD_OS_UNIX_IMPORT_OBJECTS_FROM_FD;
+		c.params = (uint64_t)(uintptr_t)&p;
+		c.paramsSize = sizeof(p);
+		int r = ioctl(ctl, NV_IOWR(NV_ESC_RM_CONTROL, sizeof(c)), &c);
+		char how[96];
+		snprintf(how, sizeof(how), "%s: %s", what[i],
+			 r == 0 ? "reached RM" : strerror(errno));
+		if (r == 0 || errno != EBADF)
+			fail("import from a foreign fd", how);
+		else
+			pass("import from a foreign fd", how);
+	}
+	if (other >= 0)
+		close(other);
+}
+
+/* T12, T13: NV2080_CTRL_CMD_FIFO_DISABLE_CHANNELS (device/src/rmchan.rs).
+ * NV2080_CTRL_FIFO_DISABLE_CHANNELS_PARAMS, 536 bytes in every release. */
+#define NV2080_CTRL_CMD_FIFO_DISABLE_CHANNELS 0x2080110bu
+#define NV20_SUBDEVICE_0 0x00002080u
+#define SUB_HANDLE 0x5b000001u
+#define NV_ERR_NOT_SUPPORTED 0x56u
+
+typedef struct {
+	uint8_t bDisable;
+	uint8_t _pad0[3];
+	uint32_t numChannels;
+	uint8_t bOnlyDisableScheduling;
+	uint8_t bRewindGpPut;
+	uint8_t _pad1[6];
+	uint64_t pRunlistPreemptEvent;
+	uint32_t hClientList[64];
+	uint32_t hChannelList[64];
+} disable_channels_params_t;
+
+_Static_assert(sizeof(disable_channels_params_t) == 536, "RM's size");
+
+/* A DISABLE_CHANNELS on `client`'s subdevice; RM's status (or the
+ * backend's), -1 for a failed ioctl. */
+static int64_t disable_channels(int fd, uint32_t client, disable_channels_params_t *p)
+{
+	nvos54_t c = {0};
+	c.hClient = client;
+	c.hObject = SUB_HANDLE;
+	c.cmd = NV2080_CTRL_CMD_FIFO_DISABLE_CHANNELS;
+	c.params = (uint64_t)(uintptr_t)p;
+	c.paramsSize = sizeof(*p);
+	if (ioctl(fd, NV_IOWR(NV_ESC_RM_CONTROL, sizeof(c)), &c) != 0)
+		return -1;
+	return c.status;
+}
+
+/* T12: channels named by another guest process's client, and a runlist
+ * preemption event. The backend lets a guest process disable only channels
+ * of its own clients -- GSP-RM itself checks no token on the list, and to it
+ * every guest process is the backend's -- and a preemption event only from
+ * the kernel, as RM does. Both refused with NV_ERR_INSUFFICIENT_PERMISSIONS
+ * before RM is asked; the first by RM itself (any other status) means the
+ * backend let it through. `mine` is a client of this process's with a
+ * device (client_with_vaspace). */
+static void t_disable_other_process(int ctl, uint32_t mine)
+{
+	if (!mine || alloc_object(ctl, mine, DEV_HANDLE, SUB_HANDLE, NV20_SUBDEVICE_0, 4) != 0) {
+		skip("disable channels, other process", "no client with a subdevice here");
+		return;
+	}
+	disable_channels_params_t p = {0};
+	p.bDisable = 1;
+	p.numChannels = 1;
+	p.hClientList[0] = mine;
+	p.hChannelList[0] = 0xc4a;
+	p.pRunlistPreemptEvent = POISON_PTR;
+	int64_t st = disable_channels(ctl, mine, &p);
+	if (st == NV_ERR_INSUFFICIENT_PERMISSIONS)
+		pass("disable channels, event", "refused (NV_ERR_INSUFFICIENT_PERMISSIONS)");
+	else {
+		char how[64];
+		snprintf(how, sizeof(how), "status 0x%llx", (long long)st);
+		fail("disable channels, event", how);
+	}
+
+	int up[2], down[2];
+	if (pipe(up) || pipe(down)) {
+		skip("disable channels, other process", "pipe failed");
+		return;
+	}
+	pid_t pid = fork();
+	if (pid < 0) {
+		skip("disable channels, other process", "fork failed");
+		return;
+	}
+	if (pid == 0) {
+		int fd = open("/dev/nvidiactl", O_RDWR | O_CLOEXEC);
+		uint32_t c = fd >= 0 ? client_with_vaspace(fd) : 0;
+		char go;
+		if (write(up[1], &c, sizeof(c)) != sizeof(c))
+			_exit(1);
+		if (read(down[0], &go, 1) < 0)
+			_exit(1);
+		_exit(0);
+	}
+	uint32_t child = 0;
+	if (read(up[0], &child, sizeof(child)) != sizeof(child))
+		child = 0;
+	if (!child) {
+		skip("disable channels, other process", "the child could not make a client");
+	} else {
+		memset(&p, 0, sizeof(p));
+		p.bDisable = 1;
+		p.numChannels = 1;
+		p.hClientList[0] = child;
+		p.hChannelList[0] = 0xc4a;
+		st = disable_channels(ctl, mine, &p);
+		if (st == NV_ERR_INSUFFICIENT_PERMISSIONS)
+			pass("disable channels, other process", "refused by the backend (NV_ERR_INSUFFICIENT_PERMISSIONS)");
+		else {
+			char how[112];
+			snprintf(how, sizeof(how),
+				 "status 0x%llx: RM was asked to stop another process's channels", (long long)st);
+			fail("disable channels, other process", how);
+		}
+	}
+	if (write(down[1], "x", 1) != 1)
+		kill(pid, SIGKILL);
+	waitpid(pid, NULL, 0);
+	close(up[0]);
+	close(up[1]);
+	close(down[0]);
+	close(down[1]);
+}
+
+/* The per-process burst of DISABLE_CHANNELS the backend was given: the
+ * second of nvgpu_fifo_disable_rates=RATE,BURST,VM_RATE,VM_BURST on the
+ * guest's command line (the launcher's NVGPU_FIFO_DISABLE_RATES), else the
+ * backend's default, 40. */
+static int proc_burst(void)
+{
+	char line[4096] = {0};
+	FILE *f = fopen("/proc/cmdline", "r");
+	if (f) {
+		if (!fgets(line, sizeof(line), f))
+			line[0] = 0;
+		fclose(f);
+	}
+	const char *r = strstr(line, "nvgpu_fifo_disable_rates=");
+	int rate, burst;
+	if (r && sscanf(r, "nvgpu_fifo_disable_rates=%d,%d", &rate, &burst) == 2 && burst > 0)
+		return burst;
+	return 40;
+}
+
+/* T13: DISABLE_CHANNELS far past the per-process rate. Each call enables
+ * no channels (numChannels 0), which RM does as a no-op; past the burst the
+ * backend answers NV_ERR_NOT_SUPPORTED itself. PASS when RM answered the
+ * first calls -- three quarters of the burst at least -- with something
+ * else and the backend then took over; a guest whose calls all reach RM
+ * would let one process preempt the runlist every VM shares as fast as it
+ * likes. Runs after T12, on the subdevice it made. */
+static void t_disable_rate(int ctl, uint32_t mine)
+{
+	if (!mine) {
+		skip("disable channels, rate", "no client with a subdevice here");
+		return;
+	}
+	disable_channels_params_t p = {0};
+	int64_t first = disable_channels(ctl, mine, &p);
+	if (first == NV_ERR_NOT_SUPPORTED || first < 0) {
+		skip("disable channels, rate", "RM does not take the call here: inconclusive");
+		return;
+	}
+	int served = 1, refused_at = 0;
+	for (int i = 1; i < 400; i++) {
+		int64_t st = disable_channels(ctl, mine, &p);
+		if (st == NV_ERR_NOT_SUPPORTED) {
+			refused_at = i;
+			break;
+		}
+		served++;
+	}
+	int least = proc_burst() * 3 / 4;
+	char how[96];
+	snprintf(how, sizeof(how), "%d served (RM's status 0x%llx), then refused; at least %d wanted", served,
+		 (long long)first, least);
+	if (refused_at && served >= least)
+		pass("disable channels, rate", how);
+	else if (!refused_at)
+		fail("disable channels, rate", "400 back to back all reached RM");
+	else
+		fail("disable channels, rate", how);
+}
+
+/* T14-T16: the opt-in RM groups (--rm-allow-group, device/src/rmgroup.rs).
+ * Which groups the backend serves is said on the guest's command line
+ * (nvgpu_rm_groups=a,b; rig/guest-image/probes/secneg.sh passes it on): a
+ * group not served is refused by the allowlist (NV_ERR_NOT_SUPPORTED); a
+ * served one's rule refuses before RM with its own status, which the test
+ * names. Each request below is sent on an object RM would answer
+ * differently (the subdevice is no debugger or profiler), so a status other
+ * than the one named means RM was asked. */
+#define NV2080_CTRL_CMD_THERMAL_SYSTEM_EXECUTE_V2 0x20800513u
+#define NV83DE_CTRL_CMD_DEBUG_READ_MEMORY 0x83de0315u
+#define NVB0CC_CTRL_CMD_RESERVE_HWPM_LEGACY 0xb0cc0101u
+#define NVB0CC_CTRL_CMD_EXEC_REG_OPS 0xb0cc010au
+#define NV01_MEMORY_LOCAL_PRIVILEGED 0x0000003fu
+#define MAXWELL_PROFILER_DEVICE 0x0000b2ccu
+#define NV_ERR_INVALID_ARGUMENT 0x1fu
+#define PRIV_HANDLE 0x3f000001u
+#define PROF_HANDLE 0xb2c00001u
+
+/* NV2080_CTRL_THERMAL_SYSTEM_EXECUTE_V2_PARAMS (ctrl2080thermal.h). */
+typedef struct {
+	uint32_t result, executed, opcode;
+	uint32_t operands[8];
+} thermal_instr_t;
+
+typedef struct {
+	uint32_t clientAPIVersion, clientAPIRevision, clientInstructionSizeOf;
+	uint32_t executeFlags, successfulInstructions, instructionListSize;
+	thermal_instr_t instructionList[32];
+} thermal_params_t;
+
+_Static_assert(sizeof(thermal_params_t) == 1432, "RM's size");
+
+/* NV83DE_CTRL_DEBUG_READ_MEMORY_PARAMS. */
+typedef struct {
+	uint32_t hMemory, length;
+	uint64_t offset, buffer;
+} debug_memory_params_t;
+
+/* NVB0CC_CTRL_EXEC_REG_OPS_PARAMS, with NV2080_CTRL_GPU_REG_OP. */
+typedef struct {
+	uint8_t regOp, regType, regStatus, regQuad;
+	uint32_t regGroupMask, regSubGroupMask, regOffset;
+	uint32_t regValueHi, regValueLo, regAndNMaskHi, regAndNMaskLo;
+} reg_op_t;
+
+typedef struct {
+	uint32_t regOpCount, mode;
+	uint8_t bPassed, bDirect, _pad[2];
+	reg_op_t regOps[124];
+} reg_ops_params_t;
+
+_Static_assert(sizeof(reg_ops_params_t) == 3980, "RM's size");
+
+/* Whether the guest's command line says the backend serves `group`. */
+static int group_on(const char *group)
+{
+	static char line[4096];
+	if (!line[0]) {
+		FILE *f = fopen("/proc/cmdline", "r");
+		if (!f || !fgets(line, sizeof(line), f))
+			line[0] = ' ';
+		if (f)
+			fclose(f);
+	}
+	const char *g = strstr(line, "nvgpu_rm_groups=");
+	if (!g)
+		return 0;
+	g += strlen("nvgpu_rm_groups=");
+	size_t n = strlen(group);
+	while (*g && *g != ' ' && *g != '\n') {
+		if (!strncmp(g, group, n) && (g[n] == ',' || g[n] == ' ' || g[n] == '\n' || !g[n]))
+			return 1;
+		while (*g && *g != ',' && *g != ' ' && *g != '\n')
+			g++;
+		if (*g == ',')
+			g++;
+	}
+	return 0;
+}
+
+static int64_t control(int fd, uint32_t client, uint32_t object, uint32_t cmd, void *p, uint32_t size)
+{
+	nvos54_t c = {0};
+	c.hClient = client;
+	c.hObject = object;
+	c.cmd = cmd;
+	c.params = (uint64_t)(uintptr_t)p;
+	c.paramsSize = size;
+	if (ioctl(fd, NV_IOWR(NV_ESC_RM_CONTROL, sizeof(c)), &c) != 0)
+		return -1;
+	return c.status;
+}
+
+/* PASS when `st` is what the backend answers: `want` with `group` served,
+ * the allowlist's NV_ERR_NOT_SUPPORTED without it. */
+static void expect_group(const char *name, const char *group, int64_t st, uint32_t want)
+{
+	uint32_t expect = group_on(group) ? want : NV_ERR_NOT_SUPPORTED;
+	char how[128];
+	snprintf(how, sizeof(how), "group %s %s: status 0x%llx (want 0x%x)", group,
+		 group_on(group) ? "on" : "off", (long long)st, expect);
+	if (st == (int64_t)expect)
+		pass(name, how);
+	else
+		fail(name, how);
+}
+
+static void t_rm_groups(int ctl, uint32_t mine)
+{
+	if (!mine) {
+		skip("rm groups", "no client with a subdevice here");
+		return;
+	}
+	/* T14: a thermal instruction list with an opcode the header does not
+	 * name among read ones (RM would take it to GSP-RM), and one with the
+	 * temperature reading alone, which RM serves when the group is on. */
+	thermal_params_t th = {0};
+	th.clientAPIVersion = 1;
+	th.clientInstructionSizeOf = sizeof(thermal_instr_t);
+	th.instructionListSize = 2;
+	th.instructionList[0].opcode = 0x1500;
+	th.instructionList[1].opcode = 0x2000;
+	int64_t st = control(ctl, mine, SUB_HANDLE, NV2080_CTRL_CMD_THERMAL_SYSTEM_EXECUTE_V2, &th, sizeof(th));
+	expect_group("thermal, a set opcode", "thermal", st, NV_ERR_INSUFFICIENT_PERMISSIONS);
+	th.instructionListSize = 1;
+	th.clientAPIVersion = 2;
+	st = control(ctl, mine, SUB_HANDLE, NV2080_CTRL_CMD_THERMAL_SYSTEM_EXECUTE_V2, &th, sizeof(th));
+	expect_group("thermal, another API", "thermal", st, NV_ERR_INVALID_ARGUMENT);
+	th.clientAPIVersion = 1;
+	st = control(ctl, mine, SUB_HANDLE, NV2080_CTRL_CMD_THERMAL_SYSTEM_EXECUTE_V2, &th, sizeof(th));
+	printf("  INFO  %-28s status 0x%llx, sensor 0 reads %d\n", "thermal, a reading", (long long)st,
+	       (int)th.instructionList[0].operands[1]);
+
+	/* T15: the debugger's memory read, of the GPU's register aperture
+	 * (NV01_MEMORY_LOCAL_PRIVILEGED, which RM lets any client make), and
+	 * past the length cap. */
+	int64_t made = alloc_object(ctl, mine, DEV_HANDLE, PRIV_HANDLE, NV01_MEMORY_LOCAL_PRIVILEGED, 0);
+	/* Room for the length past the cap: the guest module sends a deep
+	 * segment of `length` bytes from it whatever the backend then says. */
+	static uint8_t buf[(256u << 10) + 4096];
+	debug_memory_params_t dm = {PRIV_HANDLE, 64, 0, (uint64_t)(uintptr_t)buf};
+	if (made != 0) {
+		skip("debug, register aperture", "no NV01_MEMORY_LOCAL_PRIVILEGED here");
+	} else {
+		st = control(ctl, mine, SUB_HANDLE, NV83DE_CTRL_CMD_DEBUG_READ_MEMORY, &dm, sizeof(dm));
+		expect_group("debug, register aperture", "debug", st, NV_ERR_INSUFFICIENT_PERMISSIONS);
+	}
+	dm.length = (256u << 10) + 1;
+	st = control(ctl, mine, SUB_HANDLE, NV83DE_CTRL_CMD_DEBUG_READ_MEMORY, &dm, sizeof(dm));
+	expect_group("debug, past the cap", "debug", st, NV_ERR_INVALID_ARGUMENT);
+
+	/* T16: profiling -- a device-wide profiler, a reservation that is not
+	 * context-switched, a register write. RM refuses the first itself too
+	 * unless the host lets anyone profile (RmProfilingAdminOnly=0), so it
+	 * is shown, not judged; the backend's log says which refused it. */
+	st = alloc_object(ctl, mine, SUB_HANDLE, PROF_HANDLE, MAXWELL_PROFILER_DEVICE, 8);
+	printf("  INFO  %-28s status 0x%llx (0x1b: refused, 0x22: not served)\n",
+	       "profiling, device-wide", (long long)st);
+	uint8_t ctxsw = 0;
+	st = control(ctl, mine, SUB_HANDLE, NVB0CC_CTRL_CMD_RESERVE_HWPM_LEGACY, &ctxsw, 1);
+	expect_group("profiling, not ctxsw", "profiling", st, NV_ERR_INSUFFICIENT_PERMISSIONS);
+	static reg_ops_params_t ro;
+	ro.regOpCount = 1;
+	ro.regOps[0].regOp = 1; /* WRITE_32 */
+	ro.regOps[0].regType = 1; /* GR_CTX */
+	st = control(ctl, mine, SUB_HANDLE, NVB0CC_CTRL_CMD_EXEC_REG_OPS, &ro, sizeof(ro));
+	expect_group("profiling, register write", "profiling", st, NV_ERR_INSUFFICIENT_PERMISSIONS);
+}
+
+/* ---- RM's dma-buf export (--allow-dmabuf-export) ------------------------ */
+
+/* NVOS00_PARAMETERS (nvos.h): RM_FREE. */
+typedef struct {
+	uint32_t hRoot;
+	uint32_t hObjectParent;
+	uint32_t hObjectOld;
+	uint32_t status;
+} nvos00_t;
+
+#define NV_ESC_RM_FREE 0x29
+#define NV_ESC_EXPORT_TO_DMABUF_FD 0xD9
+#define NV20_SUBDEVICE_0 0x00002080u
+#define NV01_MEMORY_LOCAL_USER 0x00000040u
+#define XD_SUB_HANDLE 0x5ddd0e01u
+#define XD_MEM_HANDLE 0x3e300e01u
+#define XD_SIZE (2u << 20)
+#define NV_OK 0u
+
+/* The GPU file every export is made on: registered with `ctl` as NVIDIA's
+ * userspace does, for the device allocation. */
+static int xd_gpu = -1;
+
+/* A client on `fd` with a device, a subdevice and XD_SIZE of video memory
+ * (XD_MEM_HANDLE); the client, or 0. NV_MEMORY_ALLOCATION_PARAMS is 128
+ * bytes from 550 on, 120 before: owner at 0, attr at 24, size at 64. */
+static uint32_t client_with_vidmem(int fd)
+{
+	int gpu = open("/dev/nvidia0", O_RDWR | O_CLOEXEC);
+	if (gpu < 0 || ioctl(gpu, NV_IOWR(NV_ESC_REGISTER_FD, sizeof(int)), &fd) != 0) {
+		if (gpu >= 0)
+			close(gpu);
+		return 0;
+	}
+	close(gpu);
+	uint32_t c = alloc_client(fd);
+	if (!c || alloc_object(fd, c, c, DEV_HANDLE, NV01_DEVICE_0, NV0080_ALLOC_PARAMETERS_SIZE) ||
+	    alloc_object(fd, c, DEV_HANDLE, XD_SUB_HANDLE, NV20_SUBDEVICE_0, 4))
+		return 0;
+	uint8_t p[128] = {0};
+	uint32_t owner = XD_MEM_HANDLE, attr = (2u << 23) | (2u << 27);
+	uint64_t size = XD_SIZE;
+	memcpy(p + 0, &owner, 4);
+	memcpy(p + 24, &attr, 4);
+	memcpy(p + 64, &size, 8);
+	for (uint32_t len = 128; len >= 120; len -= 8) {
+		nvos64_t a = {0};
+		a.hRoot = c;
+		a.hObjectParent = DEV_HANDLE;
+		a.hObjectNew = XD_MEM_HANDLE;
+		a.hClass = NV01_MEMORY_LOCAL_USER;
+		a.pAllocParms = (uint64_t)(uintptr_t)p;
+		a.paramsSize = len;
+		if (ioctl(fd, NV_IOWR(NV_ESC_RM_ALLOC, sizeof(a)), &a) == 0 && a.status == 0)
+			return c;
+	}
+	return 0;
+}
+
+/* EXPORT_TO_DMABUF_FD of XD_SIZE of `mem` of `client`, with `fd_in` (-1 for
+ * a new dma-buf, else the append form), on the GPU file: 0 with the fd RM's
+ * answer put in *fd (-1 if none) and its status in *status, or -errno for
+ * the ioctl. 2608 bytes from 570 on, 2600 before; the host takes one. */
+static int xd_export(uint32_t client, uint32_t mem, int fd_in, int *fd, uint32_t *status)
+{
+	uint8_t b[2608];
+	uint32_t one = 1;
+	uint64_t total = XD_SIZE;
+	int r = -EINVAL;
+
+	*fd = -1;
+	*status = 0;
+	for (int wide = 1; wide >= 0; wide--) {
+		size_t len = wide ? 2608 : 2600;
+		size_t handles = wide ? 36 : 32, sizes = wide ? 1576 : 1568;
+		size_t st = wide ? 2600 : 2592;
+		memset(b, 0, sizeof(b));
+		memcpy(b, &fd_in, 4);
+		memcpy(b + 4, &client, 4);
+		memcpy(b + 8, &one, 4);
+		memcpy(b + 12, &one, 4);
+		memcpy(b + 24, &total, 8);
+		memcpy(b + handles, &mem, 4);
+		memcpy(b + sizes, &total, 8);
+		if (ioctl(xd_gpu, NV_IOWR(NV_ESC_EXPORT_TO_DMABUF_FD, len), b) != 0) {
+			r = -errno;
+			if (r == -EINVAL)
+				continue;
+			return r;
+		}
+		memcpy(status, b + st, 4);
+		memcpy(fd, b, 4);
+		if (*status != NV_OK || *fd == fd_in)
+			*fd = -1;
+		return 0;
+	}
+	return r;
+}
+
+/* T17, the control for T18-T20, and what the guest can do with an export.
+ * With --allow-dmabuf-export the process's own video memory exports as a
+ * dma-buf (FAIL when refused for any reason but the switch), which no CPU
+ * maps. Without it the escape is refused (EOPNOTSUPP), and T18-T20 check
+ * that their requests are refused all the same. Returns whether the
+ * backend serves the export. */
+static int t_dmabuf_export_own(uint32_t mine)
+{
+	int fd;
+	uint32_t st;
+
+	if (!mine) {
+		skip("dma-buf export, own memory", "no client with video memory here");
+		return 0;
+	}
+	int r = xd_export(mine, XD_MEM_HANDLE, -1, &fd, &st);
+	if (r == -EOPNOTSUPP) {
+		skip("dma-buf export, own memory", "the backend does not serve it "
+						     "(--allow-dmabuf-export off): refused");
+		return 0;
+	}
+	if (r || st != NV_OK || fd < 0) {
+		char how[96];
+		snprintf(how, sizeof(how), "refused: ioctl %d, status %#x", r, st);
+		fail("dma-buf export, own memory", how);
+		return 0;
+	}
+	void *m = mmap(NULL, XD_SIZE, PROT_READ, MAP_SHARED, fd, 0);
+	if (m != MAP_FAILED) {
+		munmap(m, XD_SIZE);
+		fail("dma-buf export, own memory", "made, and a CPU mapping of it was too");
+	} else {
+		pass("dma-buf export, own memory", "made (control); no CPU mapping of it");
+	}
+	close(fd);
+	return 1;
+}
+
+/* T18: a forked child makes a client with video memory; the parent, knowing
+ * the handles, exports the child's memory through its own GPU file. RM
+ * would (it checks nothing of whose hClient is); the backend refuses any
+ * client but the calling process's own. */
+static void t_dmabuf_export_other_process(void)
+{
+	int up[2], down[2];
+	if (pipe(up) || pipe(down)) {
+		skip("dma-buf export, other process", "pipe failed");
+		return;
+	}
+	pid_t pid = fork();
+	if (pid < 0) {
+		skip("dma-buf export, other process", "fork failed");
+		return;
+	}
+	if (pid == 0) {
+		int fd = open("/dev/nvidiactl", O_RDWR | O_CLOEXEC);
+		uint32_t c = fd >= 0 ? client_with_vidmem(fd) : 0;
+		char go;
+		if (write(up[1], &c, sizeof(c)) != sizeof(c))
+			_exit(1);
+		if (read(down[0], &go, 1) < 0)
+			_exit(1);
+		_exit(0);
+	}
+	uint32_t child = 0;
+	if (read(up[0], &child, sizeof(child)) != sizeof(child))
+		child = 0;
+	if (!child) {
+		skip("dma-buf export, other process", "the child could not make video memory");
+	} else {
+		int fd;
+		uint32_t st;
+		int r = xd_export(child, XD_MEM_HANDLE, -1, &fd, &st);
+		if (r == 0 && st == NV_OK && fd >= 0) {
+			fail("dma-buf export, other process", "accepted (another process's memory)");
+			close(fd);
+		} else if (r == 0 && st == NV_ERR_INSUFFICIENT_PERMISSIONS) {
+			pass("dma-buf export, other process", "refused (NV_ERR_INSUFFICIENT_PERMISSIONS)");
+		} else {
+			pass("dma-buf export, other process", "refused");
+		}
+	}
+	if (write(down[1], "x", 1) != 1)
+		kill(pid, SIGKILL);
+	waitpid(pid, NULL, 0);
+	close(up[0]);
+	close(up[1]);
+	close(down[0]);
+	close(down[1]);
+}
+
+/* T19: video memory of this process's own, freed, then exported: RM finds
+ * no object, and no dma-buf is made. */
+static void t_dmabuf_export_closed(int ctl)
+{
+	uint32_t c = client_with_vidmem(ctl);
+	if (!c) {
+		skip("dma-buf export, closed object", "no client with video memory here");
+		return;
+	}
+	nvos00_t f = {.hRoot = c, .hObjectParent = DEV_HANDLE, .hObjectOld = XD_MEM_HANDLE};
+	if (ioctl(ctl, NV_IOWR(NV_ESC_RM_FREE, sizeof(f)), &f) != 0 || f.status) {
+		skip("dma-buf export, closed object", "the memory could not be freed");
+		return;
+	}
+	int fd;
+	uint32_t st;
+	int r = xd_export(c, XD_MEM_HANDLE, -1, &fd, &st);
+	if (r == 0 && st == NV_OK && fd >= 0) {
+		fail("dma-buf export, closed object", "a dma-buf of freed memory was made");
+		close(fd);
+	} else {
+		pass("dma-buf export, closed object", "refused");
+	}
+}
+
+/* T20: a second export into one dma-buf (the append form, `fd` >= 0): into
+ * the one T17's export made, and into a descriptor that is no dma-buf. The
+ * backend would have RM look the number up in its own table; refused. */
+static void t_dmabuf_export_double(uint32_t mine, int serves)
+{
+	int fd = -1, fd2;
+	uint32_t st;
+
+	if (!mine) {
+		skip("dma-buf export, double", "no client with video memory here");
+		return;
+	}
+	if (serves && (xd_export(mine, XD_MEM_HANDLE, -1, &fd, &st) || fd < 0)) {
+		fail("dma-buf export, double", "the first export was refused");
+		return;
+	}
+	int other = open("/dev/null", O_RDONLY | O_CLOEXEC);
+	int into[2] = {fd >= 0 ? fd : other, other};
+	int bad = 0;
+	for (int i = 0; i < 2; i++) {
+		int r = xd_export(mine, XD_MEM_HANDLE, into[i], &fd2, &st);
+		if (r == 0 && st == NV_OK)
+			bad = 1;
+	}
+	if (bad)
+		fail("dma-buf export, double", "an export into an existing descriptor was taken");
+	else
+		pass("dma-buf export, double", "refused");
+	if (fd >= 0)
+		close(fd);
+	if (other >= 0)
+		close(other);
+}
+
+static int open_first(const char *const *paths)
+{
+	for (; *paths; paths++) {
+		int fd = open(*paths, O_RDWR | O_CLOEXEC);
+		if (fd >= 0) {
+			fprintf(stderr, "  (using %s)\n", *paths);
+			return fd;
+		}
+	}
+	return -1;
+}
+
+static void usage(const char *me)
+{
+	fprintf(stderr,
+		"usage: %s [--ctl PATH] [--render PATH] [--kms PATH] [--kms-fd N]\n"
+		"  --ctl     /dev/nvidiactl (default)\n"
+		"  --render  the nvidia render node (default: first of renderD128..131)\n"
+		"  --kms     a guest card or adopted lease DRM file (enables the KMS tests)\n"
+		"  --kms-fd  an already-open lease fd number, e.g. inherited from a lease client\n",
+		me);
+}
+
+int main(int argc, char **argv)
+{
+	const char *ctl_path = "/dev/nvidiactl";
+	const char *render_path = NULL;
+	const char *kms_path = NULL;
+	int kms_fd = -1;
+
+	for (int i = 1; i < argc; i++) {
+		if (!strcmp(argv[i], "--ctl") && i + 1 < argc)
+			ctl_path = argv[++i];
+		else if (!strcmp(argv[i], "--render") && i + 1 < argc)
+			render_path = argv[++i];
+		else if (!strcmp(argv[i], "--kms") && i + 1 < argc)
+			kms_path = argv[++i];
+		else if (!strcmp(argv[i], "--kms-fd") && i + 1 < argc)
+			kms_fd = atoi(argv[++i]);
+		else {
+			usage(argv[0]);
+			return 2;
+		}
+	}
+
+	int ctl = open(ctl_path, O_RDWR | O_CLOEXEC);
+	if (ctl < 0) {
+		fprintf(stderr, "cannot open %s: %s\n", ctl_path, strerror(errno));
+		return 2;
+	}
+
+	int render;
+	if (render_path)
+		render = open(render_path, O_RDWR | O_CLOEXEC);
+	else {
+		static const char *cands[] = {
+			"/dev/dri/renderD128", "/dev/dri/renderD129",
+			"/dev/dri/renderD130", "/dev/dri/renderD131", NULL};
+		render = open_first(cands);
+	}
+
+	int kms = kms_fd;
+	if (kms < 0 && kms_path)
+		kms = open(kms_path, O_RDWR | O_CLOEXEC);
+
+	printf("display-passthrough security negative tests\n");
+	printf("ctl=%s render=%s kms=%s\n", ctl_path,
+	       render >= 0 ? "yes" : "no",
+	       kms >= 0 ? "yes" : "no");
+
+	uint32_t client = alloc_client(ctl);
+
+	t_os_descriptor(ctl);
+	t_raw_pointer_control(ctl, client);
+	t_semsurf_huge_index(render);
+	t_grant_sub_owner(kms);
+	t_addfb2_non_nvkms(kms);
+	t_getfb_foreign(kms);
+
+	/* RM objects between clients: T7 on the client above; T8 and T9 on a
+	 * second client of this process's with a device and a VA space. */
+	t_share_all(ctl, client);
+	uint32_t mine = client_with_vaspace(ctl);
+	int control_ok = t_dup_same_process(ctl, mine);
+	t_dup_other_process(ctl, mine, control_ok);
+	/* T10: a second client named in parameters, of another guest user. */
+	t_share_other_user(ctl, client, mine);
+	/* T11: an export descriptor that is not this process's own file. */
+	t_import_foreign_fd(ctl, client);
+	/* T12, T13: stopping channels -- another process's, and too often. */
+	t_disable_other_process(ctl, mine);
+	t_disable_rate(ctl, mine);
+	/* T14-T16: the opt-in RM groups, on or off. */
+	t_rm_groups(ctl, mine);
+	/* T17-T20: RM's dma-buf export -- the control, another process's
+	 * memory, a freed object, a second export into one dma-buf. */
+	xd_gpu = open("/dev/nvidia0", O_RDWR | O_CLOEXEC);
+	uint32_t vid = client_with_vidmem(ctl);
+	int serves = t_dmabuf_export_own(vid);
+	t_dmabuf_export_other_process();
+	t_dmabuf_export_closed(ctl);
+	t_dmabuf_export_double(vid, serves);
+
+	printf("\n%d passed, %d failed, %d skipped\n", passes, fails, skips);
+	if (fails)
+		printf("A FAIL means a dangerous request was ACCEPTED. Capture the "
+		       "backend log (RUST_LOG=debug) and host dmesg.\n");
+	return fails;
+}

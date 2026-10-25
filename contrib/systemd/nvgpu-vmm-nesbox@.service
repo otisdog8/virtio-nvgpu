@@ -1,0 +1,87 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# VM N under nesbox, as nvgpu-vmmN, against vhost-user-nvgpu@N.service. A
+# template: it has passed `systemd-analyze verify`, not yet a run on
+# hardware (DEPLOY.md, "Per-VM users"); the rig's root launcher
+# (rig/run-guest.sh) is what has run the same arrangement.
+#
+# In /etc/virtio-nvgpu/vmmN.env:
+#   NVGPU_VMM_CONFIG=/etc/virtio-nvgpu/vmN.json   # nesbox's config
+#   NVGPU_JAIL_ROOT=/var/lib/virtio-nvgpu/jail    # the jail image: nesbox at
+#                                                 # usr/bin/nesbox (and
+#                                                 # virtiofsd for a share)
+# The config names the backend's socket, "gpu-forward": { "socket":
+# "/run/nvgpu/vmN/nvgpu.sock" }, and "unshare-network": false -- nesbox
+# cannot make a user namespace once chrooted, so the network namespace is
+# this unit's (PrivateNetwork=). The disk it names must be nvgpu-vmmN's to
+# write. The tuning knobs (DEPLOY.md, "Tuning") go in the same file, each
+# with the default below:
+#   NVGPU_SLICE_US=100     the EEVDF slice of every VMM thread (0: the
+#                          host's own, about 3 ms)
+#   NVGPU_CORE_SCHED=off   off (nesbox makes no core-scheduling cookie), vm
+#                          (one for the whole VMM) or shared (one with the
+#                          backend; SECURITY.md, "The tuning knobs")
+# contrib/systemd/nvgpu-vmm-exec applies them as it execs the jailer, which
+# the jailed nesbox inherits both from. nesbox's own prefault is its
+# config's (machine-config "prefault", on by default).
+# Pinned vCPUs (DEPLOY.md, "vCPU placement"; rig/pin-layout.sh prints a
+# layout for this host) are its config's "machine-config" keys:
+# "vcpu_pins" (a CPU, or with patches/nesbox/0002 a list of CPUs, per
+# vCPU), "threads_per_core" (what the guest is told) and "io_affinity"
+# (nesbox's other threads).
+#
+# nesbox's jailer (nesbox tools/jailer, Linux 5.8 or later) starts as root:
+# it makes the jail's mount namespace with a /proc of its own
+# (hidepid=invisible) and only the parts of /sys nesbox reads, chroots into
+# the jail image, and becomes nvgpu-vmmN in group nvgpu-vmN with no
+# supplementary group, so /dev/kvm must be 0666 (systemd's default rule).
+# It refuses a uid that has a live process on the host.
+
+[Unit]
+Description=virtio-nvgpu VM %i (nesbox)
+# The VM's device is the backend: it goes when the backend goes, however
+# the backend ends (Requires= would leave the VM running without it).
+BindsTo=vhost-user-nvgpu@%i.service
+After=vhost-user-nvgpu@%i.service
+
+[Service]
+Type=exec
+# The knobs' defaults; the file below overrides each it sets.
+Environment=NVGPU_SLICE_US=100 NVGPU_CORE_SCHED=off
+EnvironmentFile=/etc/virtio-nvgpu/vmm%i.env
+# The uid and gid by name, which the jailer takes as numbers.
+ExecStart=/bin/sh -c 'exec /usr/libexec/virtio-nvgpu/nvgpu-vmm-exec nesbox jailer --config "$NVGPU_VMM_CONFIG" --jail-root "$NVGPU_JAIL_ROOT" --uid "$(id -u nvgpu-vmm%i)" --gid "$(getent group nvgpu-vm%i | cut -d: -f3)"'
+# NVGPU_CORE_SCHED=shared: the backend takes the cookie the jailer was
+# exec'd with; nothing for any other mode.
+ExecStartPost=+/usr/libexec/virtio-nvgpu/nvgpu-vmm-exec join %i $MAINPID
+Restart=no
+TimeoutStopSec=30
+# Guest RAM is committed at boot; size this as guest RAM plus about 256 MiB
+# (nesbox leaves the window PROT_NONE until something is placed there).
+#MemoryMax=
+# A VMM that must never beat the desktop to a CPU: a lower weight, or a
+# slice of its own (SECURITY.md, "Frame pacing").
+#CPUWeight=50
+# A VMM its guest has taken over can grow any file it can write -- the
+# disk above all -- with ftruncate or fallocate until the file system is
+# full. RLIMIT_FSIZE bounds that, but also every memfd the VMM sizes: set it
+# no lower than the largest of the disk, guest RAM and the window (a VMM
+# that passes it is killed with SIGXFSZ). Unset by default.
+#LimitFSIZE=
+# A host C-state cap while this VM runs (DEPLOY.md, "Tuning"; off by
+# default, it costs power), in a drop-in:
+#   [Unit]
+#   Wants=nvgpu-cpu-latency@50.service
+#   After=nvgpu-cpu-latency@50.service
+PrivateNetwork=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+# What neither the jailer nor nesbox uses. (Not UMask=, which would make
+# the directories the jailer creates for nesbox's binds its own alone, nor
+# ProtectKernelTunables= or ProtectControlGroups=, until a run on hardware
+# shows the jailer writes nothing under /sys.)
+LockPersonality=yes
+RestrictSUIDSGID=yes
+SystemCallArchitectures=native
+ProtectKernelModules=yes
+ProtectKernelLogs=yes

@@ -1,4 +1,7 @@
-// crates/device/src/error.rs
+// SPDX-License-Identifier: Apache-2.0
+// device/src/error.rs
+
+#![forbid(unsafe_code)]
 
 use thiserror::Error;
 

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+#![forbid(unsafe_code)]
+
 use clap::Parser;
 use device::nvidia::NvidiaBackend;
 use device::shm::ZoneConfig;
@@ -42,8 +45,11 @@ async fn main() -> anyhow::Result<()> {
         tracing::warn!("mock mode: GPU ioctls will fail with EBADF");
     }
 
-    // Remove stale socket file.
-    let _ = std::fs::remove_file(&args.socket_path);
+    // A stale socket of ours goes; anything else at the path is refused.
+    device::posture::clear_socket_path(
+        std::path::Path::new(&args.socket_path),
+        device::sys::proc::euid(),
+    )?;
     let listener = UnixListener::bind(&args.socket_path)
         .unwrap_or_else(|e| panic!("bind {:?}: {}", args.socket_path, e));
 
@@ -61,9 +67,17 @@ async fn main() -> anyhow::Result<()> {
         uc_size: uc,
         wc_size: wc,
         wb_size: wb,
+        owner_percent: ZoneConfig::DEFAULT_OWNER_PERCENT,
     };
 
-    let backend = Arc::new(Mutex::new(NvidiaBackend::new(cfg)));
+    let mut nvidia = NvidiaBackend::new(cfg);
+    // The host's version, as the real transport reads it: with none, every
+    // RM escape is refused (the guest's CHECK_VERSION_STR teaches nothing).
+    match device::host::driver_version(std::path::Path::new("/proc/driver/nvidia")) {
+        Some(v) => nvidia.set_host_driver_version(&v),
+        None => tracing::warn!("no NVIDIA driver version: every RM escape will be refused"),
+    }
+    let backend = Arc::new(Mutex::new(nvidia));
 
     loop {
         tokio::select! {
